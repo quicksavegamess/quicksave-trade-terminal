@@ -1,0 +1,790 @@
+<!doctype html><html><head><meta charset="utf-8"><meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+
+
+<style>
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;background:#080b0d;color:#f4f7f5}button,input,select{font:inherit}.hidden{display:none!important}
+:root{--green:#35c86a;--green2:#1d8d48;--red:#c63e46;--yellow:#e6c448;--ink:#080b0d;--panel:#11181c;--panel2:#151e23;--line:#2a373f;--muted:#819099;--white:#f5f7f6}
+button{cursor:pointer;border:1px solid #35434b;background:#202c32;color:#f5f7f6;border-radius:8px;padding:9px 12px;font-weight:800;font-size:11px;transition:.12s ease}button:hover{transform:translateY(-1px);background:#293840;border-color:#53636c}.primary{background:var(--green2);border-color:#37a25c}.ghost{background:transparent}.danger{background:#482127;border-color:#79343b;color:#ffd9dc}
+input,select{width:100%;border:2px solid transparent;border-radius:8px;background:#f4f6f7;color:#101416;min-height:44px;padding:9px 11px}input:focus,select:focus{outline:0;border-color:var(--green);box-shadow:0 0 0 3px rgba(53,200,106,.14)}
+/* Login: deliberately a separate designed experience */
+.loginView{min-height:100vh;display:grid;place-items:center;position:relative;overflow:hidden;background:#070a0c}.loginBackdrop{position:absolute;inset:0;background:radial-gradient(circle at 50% 15%,rgba(53,200,106,.16),transparent 30rem),linear-gradient(145deg,#090d10,#050708)}.gridGlow{position:absolute;inset:0;opacity:.14;background-image:linear-gradient(rgba(255,255,255,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.05) 1px,transparent 1px);background-size:34px 34px;mask-image:linear-gradient(to bottom,#000,transparent 75%)}
+.loginPanel{position:relative;width:min(440px,92vw);background:rgba(16,23,27,.94);border:1px solid #314139;border-top:4px solid var(--green);border-radius:18px;padding:32px;box-shadow:0 35px 100px rgba(0,0,0,.58)}.qsBadge{width:58px;height:58px;border-radius:12px;background:var(--green);color:#07110a;display:grid;place-items:center;font-weight:1000;font-size:22px;margin-bottom:24px}.loginKicker{font-size:9px;letter-spacing:.17em;color:#77da97;font-weight:900}.loginBrand h1{font-size:38px;letter-spacing:-.055em;margin:5px 0 2px}.loginBrand p{margin:0 0 27px;color:#84939b;font-size:12px}.loginForm{display:grid;gap:8px}.loginForm label{font-size:9px;letter-spacing:.12em;color:#91a0a8;font-weight:900;margin-top:6px}.loginButton{margin-top:10px;min-height:48px;background:var(--green);color:#06110a;border-color:#65e48a;letter-spacing:.07em}.loginMsg{min-height:18px;color:#f1a2a7;font-size:11px}.loginPanel footer{text-align:center;border-top:1px solid #29353b;margin-top:24px;padding-top:17px;font-size:9px;letter-spacing:.18em;color:#6f7e86;font-weight:900}.loginPanel footer span{color:var(--green);padding:0 4px}
+/* App */
+.commandHeader{height:78px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;border-bottom:1px solid #263139;background:#0c1114;position:sticky;top:0;z-index:20}.headerBrand,.headerActions,.employeeChip{display:flex;align-items:center}.headerBrand{gap:12px}.miniBadge{width:40px;height:40px;border-radius:8px;background:var(--green);color:#07110a;display:grid;place-items:center;font-weight:1000}.headerKicker{font-size:8px;letter-spacing:.14em;color:#73828a;font-weight:900}.headerTitle{font-size:19px;font-weight:950;letter-spacing:-.035em}.headerTitle span{font-size:9px;color:#74db96;margin-left:5px;letter-spacing:.08em}.headerActions{gap:8px}.employeeChip{gap:9px;padding:7px 10px;border:1px solid #2a3c32;background:#111b16;border-radius:9px}.employeeChip small{display:block;font-size:7px;letter-spacing:.12em;color:#6e8175}.employeeChip b{font-size:11px}.onlineDot{width:8px;height:8px;background:var(--green);border-radius:50%;box-shadow:0 0 0 4px rgba(53,200,106,.1)}
+.terminal{max-width:1640px;margin:0 auto;padding:18px}.moneyStrip{display:grid;grid-template-columns:1fr 1fr auto;gap:10px;margin-bottom:10px}.moneyCard{min-height:104px;padding:18px 20px;background:#11181d;border:1px solid #29363e;border-radius:13px;display:flex;align-items:center;justify-content:space-between;position:relative;overflow:hidden}.moneyCard:after{content:"";position:absolute;width:150px;height:150px;right:-75px;top:-75px;border:1px solid rgba(255,255,255,.04);transform:rotate(45deg)}.tradeMoney{border-left:5px solid var(--green)}.cashMoney{border-left:5px solid #668ca1}.moneyLabel{display:block;font-size:10px;letter-spacing:.15em;font-weight:950;color:#9eabb2}.moneyCard small{display:block;color:#65757e;font-size:9px;margin-top:5px}.moneyCard strong{font-size:42px;letter-spacing:-.06em;font-variant-numeric:tabular-nums}.tradeMoney strong{color:#aef0c1}.promoSummary{align-self:stretch;min-width:0}
+.customerBar{display:flex;justify-content:space-between;align-items:center;gap:16px;background:#11181d;border:1px solid #29363e;border-radius:13px;padding:13px 15px;margin-bottom:10px}.sectionIdentity{display:flex;align-items:center;gap:12px}.sectionIdentity>span,.panelHeading span,.sectionEyebrow span{color:var(--green);font-size:9px;font-weight:950;letter-spacing:.1em}.sectionIdentity small{display:block;color:#6f7e86;font-size:8px;letter-spacing:.13em;font-weight:900}.sectionIdentity b{display:block;font-size:15px;margin-top:2px}.muted{color:#788890;font-size:9px;margin-top:2px}.customerActions{display:flex;gap:6px;flex-wrap:wrap}
+.workspace{display:grid;grid-template-columns:1fr;gap:10px;align-items:stretch}.intakePanel,.tradePanel{background:#10171b;border:1px solid #29363e;border-radius:13px;overflow:hidden}.panelHeading,.tradeHeader{padding:16px 17px;border-bottom:1px solid #28343c;background:#141d22;display:flex;justify-content:space-between;align-items:center}.panelHeading small,.sectionEyebrow{font-size:8px;letter-spacing:.13em;color:#74838b;font-weight:900}.panelHeading h2,.tradeHeader h2{font-size:18px;letter-spacing:-.035em;margin:2px 0 0}.liveBadge{font-size:8px;letter-spacing:.1em;font-weight:950;color:#8ce3a7;border:1px solid #2d5d3c;background:#102118;border-radius:999px;padding:6px 8px}.tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;padding:10px 10px 0}.tabs button{background:#192228;color:#87959c}.tabs button.active{background:#1b4f2d;border-color:#347c4b;color:#c2f5d0}.lookupPane{padding:12px}.lookupPane label{display:block;font-size:8px;letter-spacing:.12em;color:#76858d;font-weight:900;margin-bottom:6px}.searchRow{display:grid;grid-template-columns:1fr auto;gap:6px}.results{margin-top:8px;max-height:390px;overflow:auto}.result{padding:10px;border:1px solid #28353c;border-radius:8px;background:#141d22;margin-top:6px}.intakeTools{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;padding:0 12px 12px}
+.tradeHeaderActions{display:flex;align-items:center;gap:6px}.count{font-size:8px;letter-spacing:.08em;border:1px solid #334149;background:#1a252b;border-radius:999px;padding:6px 8px;color:#a3b0b6}.tradeTableWrap{position:relative;min-height:470px;overflow:auto}.tradeTable{width:100%;border-collapse:collapse}.tradeTable th{text-align:left;padding:10px 12px;background:#0a0f12;color:#72828a;font-size:8px;letter-spacing:.1em;text-transform:uppercase}.tradeTable td{padding:12px;border-top:1px solid #253139;background:#11191e;font-size:11px}.tradeTable tr:nth-child(even) td{background:#141e23}.tradeTable tr:hover td{background:#19272d}.emptyTrade{position:absolute;inset:42px 0 0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;color:#6f7f87;background:radial-gradient(circle at center,rgba(53,200,106,.045),transparent 38%)}.emptyTrade .emptyIcon{width:48px;height:48px;border:1px dashed #3b4a42;border-radius:12px;display:grid;place-items:center;color:#67cf87;font-size:25px}.emptyTrade b{font-size:19px;color:#d5dee1}.emptyTrade span{font-size:10px}
+.checkoutDock{margin-top:10px;display:grid;grid-template-columns:1fr auto;gap:12px;background:#0e1418;border:1px solid #2c3941;border-radius:13px;padding:11px 12px;box-shadow:0 15px 38px rgba(0,0,0,.22)}.dockLabel{font-size:7px;letter-spacing:.13em;color:#68777f;font-weight:900;margin-bottom:5px}.utilityButtons,.checkoutCluster{display:flex;align-items:end;gap:6px}.checkoutCluster{justify-content:flex-end}.payoutChoice{display:grid;grid-template-columns:150px 150px;gap:6px}.payoutChoice .dockLabel{grid-column:1/-1}.payoutChoice select{min-height:42px}.finalAmount{min-width:150px;padding:5px 12px;text-align:right}.finalAmount small{display:block;font-size:7px;letter-spacing:.12em;color:#6d7d85;font-weight:900}.finalAmount strong{font-size:27px;letter-spacing:-.05em}.completeButton{min-height:46px;padding:0 20px;background:var(--green);border-color:#64e38a;color:#06110a;font-size:11px;letter-spacing:.06em}.completeButton span{font-size:17px;margin-left:7px}.statusbar{margin-top:8px;color:#687880;font-size:9px;padding:3px 2px}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.78);backdrop-filter:blur(7px);display:grid;place-items:center;z-index:100}.dialog{width:min(760px,94vw);max-height:88vh;overflow:auto;background:#11191e;border:1px solid #36454e;border-radius:15px;padding:18px;box-shadow:0 30px 90px rgba(0,0,0,.58)}.contextMenu{position:fixed;z-index:120;background:#11191e;border:1px solid #36454e;border-radius:9px;padding:5px;box-shadow:0 20px 55px rgba(0,0,0,.5)}
+.pixelLoad{position:fixed;inset:0;z-index:200;background:#070a0c;display:grid;place-items:center}.pixelLoad canvas{image-rendering:pixelated;max-width:92vw}.pixelLoad #pixelText{position:absolute;bottom:12%;font-weight:900;letter-spacing:.08em}
+@media(max-width:1100px){.workspace{grid-template-columns:1fr}.tradeTableWrap{min-height:400px}.checkoutDock{grid-template-columns:1fr}.checkoutCluster{justify-content:space-between}.moneyCard strong{font-size:34px}}
+@media(max-width:760px){.commandHeader{height:auto;padding:12px;align-items:flex-start;gap:10px;flex-direction:column}.headerActions{width:100%;flex-wrap:wrap}.terminal{padding:9px}.moneyStrip{grid-template-columns:1fr 1fr}.moneyCard{min-height:88px;padding:12px}.moneyCard strong{font-size:27px}.moneyCard small{display:none}.promoSummary{grid-column:1/-1}.customerBar{align-items:flex-start;flex-direction:column}.workspace{grid-template-columns:1fr}.checkoutCluster{align-items:stretch;flex-direction:column}.payoutChoice{grid-template-columns:1fr 1fr}.finalAmount{text-align:left}.completeButton{width:100%}.utilityButtons{flex-wrap:wrap}.tradeHeader{align-items:flex-start;gap:10px;flex-direction:column}.tradeHeaderActions{flex-wrap:wrap}}
+</style>
+
+<style id="v72-hook-fixes">
+.customerDetails{display:flex;gap:12px;flex-wrap:wrap;margin-top:5px}
+.customerDetails span{font-size:7px;letter-spacing:.08em;color:#68777f;font-weight:900}
+.customerDetails b{font-size:9px;color:#a9b6bc;margin-left:4px;letter-spacing:0}
+.consoleAccessoryBlock{margin-top:10px}
+#consoleAccessories{display:flex;gap:6px;flex-wrap:wrap;margin-top:5px}
+.legacyTotals{display:none!important}
+.notice{font-size:10px;margin-top:8px;min-height:18px}.notice.error{color:#f09aa0}.notice.success{color:#8be2a5}
+</style>
+
+<style id="v73-refinements">
+/* Search/intake now commands the full width above the transaction */
+.intakePanel{margin-bottom:10px}
+.intakePanel .panelHeading{padding:13px 17px}
+.intakePanel .tabs{grid-template-columns:repeat(3,minmax(130px,190px));justify-content:start}
+.intakePanel .lookupPane{padding:12px 16px 15px}
+.intakePanel .searchRow{grid-template-columns:minmax(300px,1fr) 110px}
+.intakePanel .results{max-height:330px}
+.intakeTools{grid-template-columns:repeat(3,max-content)!important;justify-content:start!important;padding:0 16px 14px!important}
+
+/* Customer is intentionally larger and easier to read */
+.customerBar{padding:18px 18px!important;min-height:96px!important}
+.sectionIdentity{align-items:flex-start!important}
+.sectionIdentity b{font-size:19px!important;margin-top:3px!important}
+.customerBar .muted{font-size:11px!important;margin-top:4px!important;color:#9aa8af!important}
+.customerDetails{gap:18px!important;margin-top:9px!important}
+.customerDetails span{font-size:8px!important}
+.customerDetails b{font-size:11px!important;color:#d7dfe2!important}
+.customerActions button{min-height:40px!important;padding:9px 13px!important}
+
+/* Restore the denser, cleaner legacy API-result/menu treatment */
+.results .result{background:#171d19!important;border:1px solid #303a33!important;border-radius:6px!important;padding:10px 11px!important;margin-top:5px!important;box-shadow:none!important}
+.results .result:hover{background:#1d2620!important;border-color:#46544a!important;transform:none!important}
+.results .result button{border-radius:5px!important;padding:6px 9px!important;font-size:10px!important}
+#gameQuote,#cardQuote,#consoleQuote{font-size:11px!important}
+#gameQuote .quote,#cardQuote .quote,#consoleQuote .quote{border-radius:6px!important;background:#151c18!important;border-color:#333e36!important}
+
+/* Right-click menu intentionally returns to the simpler legacy interaction */
+.contextMenu{position:fixed!important;z-index:120!important;min-width:190px!important;padding:4px!important;background:#171b18!important;border:1px solid #444d46!important;border-radius:5px!important;box-shadow:0 12px 32px rgba(0,0,0,.45)!important}
+.contextMenu button,.contextMenu .ctxItem{display:block!important;width:100%!important;text-align:left!important;background:transparent!important;border:0!important;border-radius:3px!important;padding:9px 10px!important;color:#eef2ef!important;font-size:11px!important;font-weight:700!important;transform:none!important}
+.contextMenu button:hover,.contextMenu .ctxItem:hover{background:#2a332c!important}
+
+/* Trade table remains dominant */
+.tradeTableWrap{min-height:500px!important}
+.tradePanel{width:100%!important}
+@media(max-width:760px){
+ .intakePanel .tabs{grid-template-columns:repeat(3,1fr)}
+ .intakePanel .searchRow{grid-template-columns:1fr}
+ .customerBar{min-height:0!important}
+}
+</style>
+
+<style id="v74-beta-polish">
+/* Actual Quicksave logo treatment */
+.qsBadge,.miniBadge{background:#fff!important;overflow:hidden!important;padding:4px!important}
+.qsBadge img,.miniBadge img{width:100%!important;height:100%!important;object-fit:contain!important;image-rendering:auto!important}
+.qsBadge{width:70px!important;height:70px!important}.miniBadge{width:46px!important;height:46px!important}
+
+/* Customer: directly below totals and big enough to read at a glance */
+.customerBar{margin-bottom:10px!important;padding:19px 20px!important;min-height:112px!important}
+.sectionIdentity{min-width:390px!important}
+.sectionIdentity b{font-size:22px!important;line-height:1.15!important}
+.customerBar .muted{font-size:12px!important}
+.customerDetails{margin-top:11px!important;gap:22px!important}
+.customerDetails span{font-size:9px!important}
+.customerDetails b{font-size:12px!important}
+.customerActions{justify-content:flex-end!important}
+.customerActions button{font-size:11px!important;min-height:42px!important}
+
+/* Restore the compact, proven old-result presentation instead of giant API cards */
+.results{max-height:300px!important;overflow:auto!important}
+.results .result{display:grid!important;grid-template-columns:1fr auto!important;gap:10px!important;padding:10px!important;border:0!important;border-top:1px solid #263442!important;border-radius:0!important;background:transparent!important;margin:0!important;cursor:pointer!important}
+.results .result:hover{background:#1d2b37!important}
+.results .result strong{display:block!important;font-size:12px!important}
+.results .result small{color:#8fa2b4!important;font-size:10px!important}
+.quote{background:#17232e!important;padding:12px!important;border-radius:8px!important;margin-top:8px!important}
+.quoteBadge{background:#31566b!important;color:#dff3ff!important;padding:4px 8px!important;border-radius:5px!important;font-size:11px!important;font-weight:800!important}
+
+/* Console accessory controls: compact checkbox rows, not enormous browser controls */
+#consoleAccessories{display:grid!important;grid-template-columns:repeat(auto-fit,minmax(180px,1fr))!important;gap:7px!important}
+#consoleAccessories .acc{display:flex!important;gap:8px!important;align-items:center!important;background:#17232e!important;padding:8px 10px!important;border-radius:6px!important;min-height:38px!important}
+#consoleAccessories input[type="checkbox"]{appearance:auto!important;-webkit-appearance:checkbox!important;width:18px!important;height:18px!important;min-height:0!important;padding:0!important;margin:0!important;box-shadow:none!important;accent-color:#35c86a!important;flex:0 0 18px!important}
+#consoleAccessories label{font-size:10px!important;line-height:1.25!important;margin:0!important}
+
+/* Game search/result typography gets room to breathe */
+#gameResults .result{min-height:52px!important;align-items:center!important}
+#gameResults .result>div:first-child{line-height:1.35!important}
+#gameResults .result button{white-space:nowrap!important;align-self:center!important}
+#gameQuote{margin-top:8px!important}
+
+/* Restore old right-click utility-menu behavior almost verbatim */
+.contextMenu{position:fixed!important;z-index:120!important;min-width:190px!important;background:#151f29!important;border:1px solid #3a4d5d!important;border-radius:8px!important;padding:5px!important;box-shadow:0 12px 30px rgba(0,0,0,.45)!important}
+.contextMenu button{display:block!important;width:100%!important;text-align:left!important;background:transparent!important;border:0!important;border-radius:5px!important;padding:9px 10px!important;transform:none!important}
+.contextMenu button:hover{background:#263442!important;transform:none!important}
+
+/* Make the loader itself feel like a transition, not a flash */
+.pixelLoad{background:#080b0d!important;animation:loaderFadeIn .25s ease both!important}
+.pixelStage{animation:stageRise .35s ease both!important}
+@keyframes loaderFadeIn{from{opacity:0}to{opacity:1}}
+@keyframes stageRise{from{opacity:0;transform:translateY(8px) scale(.99)}to{opacity:1;transform:none}}
+@media(max-width:900px){.sectionIdentity{min-width:0!important}.customerBar{align-items:flex-start!important;flex-direction:column!important}.customerActions{justify-content:flex-start!important}}
+</style>
+
+<style id="luke-powered-style">
+.lukePowered{display:flex;align-items:center;justify-content:center;gap:7px;margin:7px 0 0;
+font-size:8px;font-weight:900;letter-spacing:.12em;color:#68767d;text-transform:uppercase;opacity:.82}
+.lukePowered b{color:#78d99a;font-weight:1000}
+.lukeRunner{position:relative;width:24px;height:24px;display:inline-block;flex:0 0 24px}
+.lukeRunner i{position:absolute;display:block;background:#5ddd87;border-radius:3px}
+.lukeRunner .head{width:6px;height:6px;left:10px;top:1px;border-radius:50%;animation:lukeHead .32s ease-in-out infinite alternate}
+.lukeRunner .body{width:2px;height:10px;left:12px;top:7px;transform:rotate(13deg);transform-origin:50% 0}
+.lukeRunner .arm,.lukeRunner .leg{height:2px;transform-origin:0 50%}
+.lukeRunner .arm{width:9px;left:12px;top:9px}
+.lukeRunner .leg{width:10px;left:12px;top:16px}
+.lukeRunner .a1{animation:lukeArmFront .32s ease-in-out infinite alternate}
+.lukeRunner .a2{animation:lukeArmBack .32s ease-in-out infinite alternate}
+.lukeRunner .l1{animation:lukeLegFront .32s ease-in-out infinite alternate}
+.lukeRunner .l2{animation:lukeLegBack .32s ease-in-out infinite alternate}
+.lukeRunner:before,.lukeRunner:after{content:"";position:absolute;height:2px;background:#5ddd87;border-radius:2px;opacity:.45;animation:lukeTrail .32s linear infinite}
+.lukeRunner:before{width:6px;left:0;top:10px}.lukeRunner:after{width:4px;left:2px;top:15px;animation-delay:.16s}
+@keyframes lukeArmFront{from{transform:rotate(-55deg)}to{transform:rotate(38deg)}}
+@keyframes lukeArmBack{from{transform:rotate(145deg)}to{transform:rotate(215deg)}}
+@keyframes lukeLegFront{from{transform:rotate(32deg)}to{transform:rotate(112deg)}}
+@keyframes lukeLegBack{from{transform:rotate(150deg)}to{transform:rotate(218deg)}}
+@keyframes lukeHead{from{transform:translateY(0)}to{transform:translateY(1px)}}
+@keyframes lukeTrail{from{transform:translateX(3px);opacity:.15}to{transform:translateX(-2px);opacity:.55}}
+.loginButton{position:relative;padding-right:52px!important}
+.loginButton .buttonLuke{position:absolute;right:15px;top:50%;transform:translateY(-50%) scale(.88)}
+.loginButton .buttonLuke i{background:#07110a}
+.loginButton .buttonLuke:before,.loginButton .buttonLuke:after{background:#07110a;opacity:.45}
+@media(prefers-reduced-motion:reduce){.lukeRunner i,.lukeRunner:before,.lukeRunner:after{animation:none!important}}
+</style></head><body>
+<div id="loginView" class="loginView">
+  <div class="loginBackdrop"><div class="gridGlow"></div></div>
+  <main class="loginPanel">
+    <section class="loginBrand">
+      <div class="qsBadge"><img id="loginLogo" alt="Quicksave logo"></div>
+      <div class="loginKicker">QUICKSAVE GAMES & COLLECTIBLES</div>
+      <h1>Trade Terminal</h1>
+      <p>Employee workstation</p>
+    </section>
+    <section class="loginForm">
+      <label>EMPLOYEE</label>
+      <select id="loginEmployeeSelect"><option value="">Select employee...</option></select>
+      <label>4-DIGIT PIN</label>
+      <input id="loginPin" type="password" inputmode="numeric" maxlength="4" autocomplete="off" placeholder="****">
+      <button id="loginBtn" class="primary loginButton">ENTER TERMINAL<span class="lukeRunner buttonLuke" aria-hidden="true"><i class="head"></i><i class="body"></i><i class="arm a1"></i><i class="arm a2"></i><i class="leg l1"></i><i class="leg l2"></i></span></button><div class="lukePowered"><span>Powered by <b>L.U.K.E.</b> &nbsp; Live Universal Kit Estimator Software</span></div>
+      <div id="loginStatus" class="loginMsg"></div>
+    </section>
+    <footer>BUY <span>&#8226;</span> SELL <span>&#8226;</span> TRADE</footer>
+  </main>
+</div>
+<div id="pixelLoad" class="pixelLoad hidden" aria-live="polite">
+  <div class="pixelStage">
+    <div id="pixelScene" class="pixelScene"><canvas id="pixelCanvas" width="560" height="280"></canvas></div>
+    <div id="pixelWho" class="pixelWho"></div>
+    <div id="pixelMsg" class="pixelMsg">LOADING...</div>
+    <div class="pixelBar"><div id="pixelFill" class="pixelFill"></div></div>
+    <div id="pixelPct" class="pixelPct">0%</div>
+  </div>
+</div>
+<div id="app" class="hidden">
+  <header class="commandHeader">
+    <div class="headerBrand">
+      <div class="miniBadge"><img id="headerLogo" alt="Quicksave logo"></div>
+      <div><div class="headerKicker">QUICKSAVE GAMES & COLLECTIBLES</div><div class="headerTitle">TRADE TERMINAL <span>V7</span></div></div>
+    </div>
+    <div class="headerActions">
+      <div class="employeeChip"><span class="onlineDot"></span><div><small>SIGNED IN</small><b id="employeeName">Employee</b></div></div>
+      <button id="switchEmployeeBtn">Switch Employee</button>
+      <button id="logoutBtn" class="ghost">Log Out</button>
+    </div>
+  </header>
+
+  <main class="terminal">
+    <section class="moneyStrip">
+      <article class="moneyCard tradeMoney">
+        <div><span class="moneyLabel">TRADE CREDIT</span><small>Customer receives in store credit</small></div>
+        <strong id="tradeTotalTop">$0.00</strong>
+      </article>
+      <article class="moneyCard cashMoney">
+        <div><span class="moneyLabel">CASH VALUE</span><small>Current cash offer</small></div>
+        <strong id="cashTotalTop">$0.00</strong>
+      </article>
+      <div class="promoSummary"><div id="promoSummaryTop"></div></div>
+    </section>
+
+    <section class="customerBar">
+      <div class="sectionIdentity"><span>01</span><div><small>CUSTOMER</small><b id="customerName">No Customer Selected</b><div id="customerStatus" class="muted">Choose Lookup or New Customer to begin.</div>
+<div class="customerDetails"><span>PHONE <b id="customerPhone">--</b></span><span>EMAIL <b id="customerEmail">--</b></span><span>ID <b id="customerDL">--</b></span></div></div></div>
+      <div class="customerActions">
+        <button id="lookupCustomer">Find Customer</button>
+        <button id="newCustomer">New Customer</button>
+        <button id="editCustomer">Edit</button>
+        <button id="historyCustomer">History</button><button id="clearCustomer">Clear</button>
+        <button id="recallQuote">Website Quote</button>
+      </div>
+    </section>
+
+    <section class="intakePanel">
+        <div class="panelHeading"><div><span>02</span><small>ITEM INTAKE</small><h2>What are we buying?</h2></div><div id="liveState" class="liveBadge">Connecting live rules...</div></div>
+        <nav class="tabs">
+          <button class="mode active" data-mode="game">Games / UPC</button>
+          <button class="mode" data-mode="tcg">Cards</button>
+          <button class="mode" data-mode="console">Consoles</button>
+        </nav>
+
+        <div class="lookupPane" id="gameLookup">
+          <label>SEARCH OR SCAN</label>
+          <div class="searchRow"><input id="gameSearch" class="search" placeholder="Game title, UPC or barcode" autocomplete="off"><button id="gameSearchBtn" class="primary">Search</button></div>
+          <div id="gameResults" class="results"></div><div id="gameQuote"></div>
+        </div>
+        <div class="lookupPane hidden" id="tcgLookup">
+          <label>SEARCH CARDS</label>
+          <div class="searchRow"><input id="cardSearch" class="search" placeholder="Card name or number" autocomplete="off"><button id="cardSearchBtn" class="primary">Search</button></div>
+          <div id="cardResults" class="results"></div><div id="cardQuote"></div>
+        </div>
+        <div class="lookupPane hidden" id="consoleLookup">
+          <label>CONSOLE</label>
+          <select id="consoleSelect"><option value="">Choose console...</option></select>
+          <div class="consoleAccessoryBlock"><label>MISSING ACCESSORIES</label><div id="consoleAccessories"></div></div>
+          <div id="consoleQuote" class="results"></div>
+        </div>
+
+        <div class="intakeTools">
+          <button id="customItemBtn">+ Custom Item</button>
+          <button id="promotionBtn">Promotion</button>
+          <button id="priceSheetBtn">Price Sheet</button>
+        </div>
+      </section>
+
+    
+
+    <div class="workspace">
+      <section class="tradePanel">
+        <div class="tradeHeader">
+          <div><div class="sectionEyebrow"><span>03</span> CURRENT TRADE</div><h2>Items on the counter</h2></div>
+          <div class="tradeHeaderActions"><span id="itemCount" class="count">0 ITEMS</span><button id="editItem">Edit Item</button><button id="removeItem">Remove</button></div>
+        </div>
+        <div class="tradeTableWrap">
+          <table id="tradeTable" class="tradeTable hidden">
+            <thead><tr><th>Item</th><th>Details</th><th>Qty</th><th>Cash</th><th>Trade</th></tr></thead>
+            <tbody id="tradeBody"></tbody>
+          </table>
+          <div id="emptyTrade" class="emptyTrade">
+            <div class="emptyIcon">+</div><b>Ready for the first item.</b>
+            <span>Scan, search, or add a custom item to start this trade.</span>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <section class="checkoutDock">
+      <div class="utilityCluster">
+        <div class="dockLabel">TRADE TOOLS</div>
+        <div class="utilityButtons">
+          <button id="saveTradeBtn">Save for Later</button>
+          <button id="recentBtn">Recent / Saved</button>
+          <button id="newTradeBtn">New Trade</button>
+          <button id="clearTradeBtn" class="danger">Clear Trade</button>
+        </div>
+      </div>
+      <div class="checkoutCluster">
+        <div class="payoutChoice">
+          <div class="dockLabel">PAYOUT</div>
+          <select id="payoutType"><option value="trade">Trade Credit</option><option value="cash">Cash</option></select>
+          <select id="payoutMethod"><option value="Cash">Cash</option><option value="Cash App">Cash App</option><option value="PayPal">PayPal</option><option value="Venmo">Venmo</option></select>
+        </div>
+        <div class="legacyTotals" aria-hidden="true"><b id="tradeTotal">$0.00</b><b id="cashTotal">$0.00</b><span id="promoSummary"></span></div>
+<div class="finalAmount"><small>FINAL PAYOUT</small><strong id="readyAmount">$0.00</strong></div>
+        <button id="completeBtn" class="completeButton">COMPLETE TRADE <span>&#8594;</span></button>
+      </div>
+    </section>
+    <div id="statusBar" class="statusbar">Ready.</div>
+  </main>
+
+  <div id="receipt" class="hidden"></div>
+  <div id="modal" class="modal hidden"><div id="dialog" class="dialog"></div></div>
+  <div id="contextMenu" class="contextMenu hidden"></div>
+</div>
+<script>
+(()=>{"use strict";
+const LOGO_URI="https://kqmulxpehsyqafanxfdm.supabase.co/storage/v1/object/public/website-assets/logo.webp";
+function applyQuicksaveLogos(){["loginLogo","headerLogo"].forEach(id=>{const el=document.getElementById(id);if(el)el.src=LOGO_URI})}
+
+const SB="https://kqmulxpehsyqafanxfdm.supabase.co", PK="sb_publishable_sICF2J28CJzC-PENfAT9zg_xm6x2-DA", PC="6735889522991358f9e0e9503ef90d65bebb0c5c", JT="tcg_56d2813abdf04eee929fe22f4c8ce56b";
+let token=sessionStorage.getItem("tt_token")||"", refreshToken=sessionStorage.getItem("tt_refresh")||"", employee=null, authEmployee=null, customer=null, items=[], selected=-1, consoles=[], rules={tcg:null,games:null}, refreshing=null, promotion={type:null,value:0}, lastCompletedTrade=null, completedTrade=null;
+let TRADE_EMPLOYEES=[];
+const $=id=>document.getElementById(id), money=n=>"$"+Number(n||0).toFixed(2), esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+async function refreshSession(){if(!refreshToken)throw Error("Session expired. Please sign in again.");if(refreshing)return refreshing;refreshing=(async()=>{const r=await fetch(SB+"/auth/v1/token?grant_type=refresh_token",{method:"POST",headers:{apikey:PK,"Content-Type":"application/json"},body:JSON.stringify({refresh_token:refreshToken})});const d=await r.json();if(!r.ok)throw Error(d?.error_description||d?.msg||"Session refresh failed");token=d.access_token;refreshToken=d.refresh_token||refreshToken;sessionStorage.setItem("tt_token",token);sessionStorage.setItem("tt_refresh",refreshToken);return token})().finally(()=>refreshing=null);return refreshing}
+async function api(path,opt={},retry=true){const h={apikey:PK,"Content-Type":"application/json",...(opt.headers||{})};if(token)h.Authorization="Bearer "+token;const r=await fetch(SB+path,{...opt,headers:h});let d=null;try{d=await r.json()}catch{}if(r.status===401&&retry&&refreshToken){await refreshSession();return api(path,opt,false)}if(!r.ok)throw Error(d?.message||d?.msg||d?.error_description||"Request failed");return d}
+function note(id,msg,bad=false){const e=$(id);e.textContent=msg;e.className="notice "+(bad?"error":"success")}
+
+const PIXEL_LOADERS={
+ "Taylor Krinkie":{cls:"taylor",msgs:["CALCULATING QUESTIONABLE FINANCIAL DECISIONS...","BUYING MORE CARDBOARD...","KAYLA SAID WE HAVE ENOUGH INVENTORY...","THROWING CASH AT POKEMON CARDS...","THIS DEFINITELY COUNTS AS INVENTORY PLANNING..."]},
+ "Luke Mayer":{cls:"luke",msgs:["CALCULATING THE LUKE PRICE...","MARKET PRICE IS MERELY A SUGGESTION...","ACTIVATING LUKE PRICING TECHNIQUE...","POWERING UP THE PRICE GUIDE...","REJECTING MARKET PRICE ON PRINCIPLE..."]},
+ "Anthony Reyes":{cls:"anthony",msgs:["ANTHONY DETECTED. INCREASING DIFFICULTY...","DOUBLE CHECKING ANTHONY'S WORK...","PLEASE HOLD. ANTHONY IS DOING HIS BEST...","OH GOD, IT'S ANTHONY."]},
+ "Beyonca Lamont":{cls:"beyonca",msgs:["REMOVING CAT HAIR FROM THE CARDS...","CHECKING THE SWAMP FOR TRADES...","CATS HAVE APPROVED THIS TRANSACTION...","GET OUTTA MY SWAMP... AND INTO TRADE TERMINAL.","CONSULTING THE CAT MANAGEMENT TEAM..."]},
+ "Natalie Ghatalia":{cls:"natalie",msgs:["JUST ONE MORE CHAPTER...","BOOKMARKING CURRENT LOCATION...","TRADE TERMINAL WILL OPEN AFTER THIS CHAPTER...","ADDING CARDBOARD TO THE TBR...","CURRENTLY UNAVAILABLE: READING..."]},
+ "Kayla Krinkie":{cls:"kayla",msgs:["IGNORING WHATEVER TAYLOR IS DOING...","PROTECTING THE BOOK BUDGET...","SUPERVISING THE CARDBOARD DEPARTMENT...","DRAGON APPROVAL PENDING...","CHECKING IF TAYLOR BOUGHT MORE CARDBOARD..."]}
+};
+
+
+let pixelAnimId=0;
+function startPixelAnimation(cls){
+ cancelAnimationFrame(pixelAnimId);
+ const c=$("pixelCanvas"),x=c.getContext("2d");x.imageSmoothingEnabled=false;
+ const W=c.width,H=c.height,start=performance.now(),variant=Math.floor(Math.random()*3);
+ const R=(a,b,w,h,col)=>{x.fillStyle=col;x.fillRect(Math.round(a),Math.round(b),w,h)};
+ const T=(s,a,b,size=18,col="#fff")=>{x.fillStyle=col;x.font=`bold ${size}px monospace`;x.fillText(s,a,b)};
+ function person(cx,cy,shirt="#35d04f",hair="#3a261c",accent="#fff"){
+   // shadow
+   R(cx-30,cy+49,60,8,"#080a09");
+   // legs/shoes
+   R(cx-22,cy+14,17,34,"#252827");R(cx+6,cy+14,17,34,"#252827");R(cx-26,cy+43,23,8,"#111");R(cx+4,cy+43,23,8,"#111");
+   // torso + arms
+   R(cx-29,cy-34,58,50,shirt);R(cx-37,cy-29,9,38,"#e8b98d");R(cx+29,cy-29,9,38,"#e8b98d");
+   R(cx-20,cy-27,40,6,accent);
+   // neck/head
+   R(cx-8,cy-43,16,10,"#e8b98d");R(cx-22,cy-78,44,38,"#e8b98d");
+   // hair with pixel silhouette
+   R(cx-25,cy-84,50,12,hair);R(cx-25,cy-76,8,20,hair);R(cx+18,cy-76,8,17,hair);
+   // eyes/nose/mouth
+   R(cx-12,cy-64,5,5,"#111");R(cx+8,cy-64,5,5,"#111");R(cx-2,cy-55,4,4,"#b57d62");R(cx-8,cy-48,16,3,"#7b3f3f");
+ }
+
+ function taylorPerson(cx,cy){
+   R(cx-30,cy+49,60,8,"#080a09");
+   R(cx-22,cy+14,17,34,"#252827");R(cx+6,cy+14,17,34,"#252827");R(cx-26,cy+43,23,8,"#111");R(cx+4,cy+43,23,8,"#111");
+   R(cx-29,cy-34,58,50,"#35d04f");R(cx-37,cy-29,9,38,"#e8b98d");R(cx+29,cy-29,9,38,"#e8b98d");R(cx-20,cy-27,40,6,"#f5df45");
+   R(cx-8,cy-43,16,10,"#e8b98d");R(cx-23,cy-79,46,40,"#e8b98d");
+   // close buzz cut / hairline
+   R(cx-21,cy-82,42,7,"#9a7657");R(cx-23,cy-76,5,15,"#9a7657");R(cx+19,cy-76,5,15,"#9a7657");
+   R(cx-12,cy-64,5,5,"#111");R(cx+8,cy-64,5,5,"#111");R(cx-2,cy-55,4,4,"#b57d62");
+   R(cx-10,cy-47,20,3,"#7b3f3f");R(cx-16,cy-39,32,4,"#b18a6b"); // subtle jaw shadow
+ }
+ function kaylaPerson(cx,cy){
+   R(cx-31,cy+49,62,8,"#080a09");
+   R(cx-22,cy+14,17,34,"#252827");R(cx+6,cy+14,17,34,"#252827");R(cx-26,cy+43,23,8,"#111");R(cx+4,cy+43,23,8,"#111");
+   R(cx-31,cy-34,62,50,"#4e9b84");R(cx-39,cy-28,9,37,"#e7b58d");R(cx+31,cy-28,9,37,"#e7b58d");
+   R(cx-8,cy-43,16,10,"#e7b58d");R(cx-23,cy-79,46,40,"#e7b58d");
+   // warm auburn, side-parted shoulder-length hair
+   R(cx-28,cy-86,56,11,"#9a5a35");R(cx-31,cy-78,10,64,"#9a5a35");R(cx+20,cy-80,13,70,"#9a5a35");
+   R(cx+9,cy-85,18,9,"#c47a45");R(cx-27,cy-69,7,48,"#b66b3d");R(cx+26,cy-66,7,45,"#7f482d");
+   R(cx-24,cy-18,9,19,"#9a5a35");R(cx+20,cy-18,10,20,"#9a5a35");
+   // oversized dark glasses
+   x.strokeStyle="#171717";x.lineWidth=5;x.strokeRect(cx-20,cy-68,18,15);x.strokeRect(cx+3,cy-68,18,15);R(cx-2,cy-63,6,4,"#171717");
+   R(cx-13,cy-62,4,4,"#111");R(cx+10,cy-62,4,4,"#111");R(cx-2,cy-53,4,4,"#b57d62");R(cx-9,cy-46,18,3,"#8b4646");
+ }
+ function card(a,b,col="#f5df45",tilt=0){
+   x.save();x.translate(a+15,b+21);x.rotate(tilt);R(-15,-21,30,42,"#f7f7f7");R(-11,-17,22,34,col);R(-7,-12,14,9,"#16231b");R(-5,1,10,3,"#fff");R(-5,7,10,3,"#fff");x.restore()
+ }
+ function book(a,b,col="#d62929"){R(a,b,58,38,"#f3e6cd");R(a+4,b+4,24,30,col);R(a+30,b+4,24,30,col);R(a+28,b+2,3,34,"#171717");R(a+9,b+10,14,3,"#f5df45");R(a+35,b+10,14,3,"#f5df45")}
+ function cat(a,b,col="#ddd"){R(a,b,39,23,col);R(a+28,b-16,23,21,col);R(a+31,b-24,8,11,col);R(a+45,b-24,8,11,col);R(a+34,b-8,4,4,"#111");R(a+45,b-8,4,4,"#111");R(a+39,b-2,5,3,"#d62929");R(a+5,b+20,7,14,col);R(a+27,b+20,7,14,col);R(a-12,b+4,14,5,col)}
+ function dragon(a,b){
+   R(a,b,62,30,"#35d04f");R(a+43,b-31,42,34,"#35d04f");R(a+49,b-42,10,13,"#35d04f");R(a+72,b-42,10,13,"#35d04f");
+   R(a+69,b-19,6,6,"#111");R(a+82,b-8,14,7,"#35d04f");R(a-20,b+8,25,9,"#35d04f");
+   R(a+12,b-19,25,22,"#247d35");R(a+20,b-27,9,13,"#247d35");R(a+9,b+27,10,18,"#247d35");R(a+43,b+27,10,18,"#247d35")
+ }
+ function counter(){R(0,205,W,75,"#0d120f");R(0,205,W,8,"#704a2a");R(0,213,W,10,"#3e2a1a")}
+ function frame(now){
+   const q=(now-start)/1000;x.clearRect(0,0,W,H);R(0,0,W,H,"#17201b");
+   R(18,42,130,130,"#2a302d");R(24,49,118,7,"#704a2a");R(24,89,118,6,"#704a2a");R(24,129,118,6,"#704a2a");
+   for(let i=0;i<12;i++)R(29+(i%4)*27,60+Math.floor(i/4)*40,18,23,i%3===0?"#d62929":i%3===1?"#35d04f":"#f5df45");
+   for(let i=0;i<10;i++)R((i*59+12)%W,16+(i%3)*11,3,3,i%2?"#35d04f":"#f5df45");
+   counter();
+   if(cls==="taylor"){
+     taylorPerson(285,155);
+     if(variant===0){for(let i=0;i<6;i++)card(155+i*65,190-((q*72+i*39)%230),i%2?"#f5df45":"#d62929",q+i);let bx=370+Math.sin(q*5)*38,by=150-Math.abs(Math.sin(q*5))*45;R(bx,by,50,25,"#35d04f");R(bx+5,by+5,40,15,"#baf2c2");T("$",bx+19,by+20,18,"#0b5420");T("INVENTORY +1",376,58,18,"#35d04f")}
+     if(variant===1){for(let i=0;i<4;i++){card(360+i*38,170-i*18,"#f5df45");}T("NOTHING TO SEE HERE",325,62,18,"#fff");T("INVENTORY: +4",390,94,17,"#35d04f");R(190,176,70,26,"#704a2a");T("SNEAK",198,195,15,"#f5df45")}
+     if(variant===2){T("KAYLA",405,65,22,"#f5df45");T("WE HAVE ENOUGH.",350,95,17,"#fff");R(410,115,70,60,"#4e9b84");card(360,145,"#d62929");card(390,160,"#f5df45");T("...okay",185,92,16,"#fff")}
+   }else if(cls==="luke"){
+     person(285,155,"#d62929","#111","#f5df45");
+     if(variant===0){const pulse=7+Math.abs(Math.sin(q*8))*18;x.strokeStyle="#f5df45";x.lineWidth=7;x.strokeRect(217-pulse/2,62-pulse/2,136+pulse,150+pulse);for(let i=0;i<8;i++){let ang=q*3+i*Math.PI/4;R(285+Math.cos(ang)*95,137+Math.sin(ang)*82,7,18,i%2?"#fff":"#f5df45")}T("LUKE PRICE!",390,70,23,"#f5df45");T("$"+(Math.floor(q*347)%999),420,105,24,"#35d04f")}
+     if(variant===1){T("SCANNING MARKET...",350,62,18,"#fff");let n=40+Math.floor(Math.abs(Math.sin(q*4))*60);R(370,92,140,22,"#222");R(374,96,n*1.3,14,"#35d04f");T("PRICE GUIDE FEARS HIM",325,145,17,"#f5df45")}
+     if(variant===2){for(let i=0;i<5;i++)T("$"+(10+i*7),365+i*25,65+i*24,16,i===4?"#f5df45":"#777");T("NO.",405,185,30,"#d62929");T("LUKE PRICE",378,215,20,"#35d04f")}
+   }else if(cls==="anthony"){
+     person(285,155,"#d62929","#3a261c","#fff");
+     if(variant===0){for(let i=0;i<4;i++){let yy=((q*110+i*67)%300)-55,xx=170+i*72;R(xx,yy,52,34,"#d62929");R(xx+5,yy+5,42,24,"#eee")}T(Math.sin(q*9)>0?"BONK!":"...WHY?",365,128,26,"#f5df45")}
+     if(variant===1){T("ANTHONY CHECKLIST",350,60,19,"#fff");["KEYS?","PRICE?","QUANTITY?"].forEach((s,i)=>{T(s,365,95+i*30,17,"#f5df45");T(i<2?"&#10003;":"?",475,95+i*30,19,i<2?"#35d04f":"#d62929")})}
+     if(variant===2){T("DIFFICULTY",385,62,18,"#fff");T("MAXIMUM",402,96,25,"#d62929");for(let i=0;i<5;i++)R(375+i*28,120,20,35,"#d62929");T("GOOD LUCK",395,185,19,"#f5df45")}
+   }else if(cls==="beyonca"){
+     person(285,155,"#35d04f","#4b2e22","#fff");
+     if(variant===0){for(let i=0;i<12;i++)R(i*52,190-(i%3)*5,35,15,"#247d35");cat(((q*78)%650)-70,174,"#eee");cat(((q*78+310)%650)-70,168,"#666");T("SWAMP MODE",390,57,21,"#35d04f")}
+     if(variant===1){for(let i=0;i<4;i++)cat(355+i*42,155-(i%2)*25,i%2?"#777":"#eee");T("CAT INSPECTION",370,65,20,"#fff");T("APPROVED",410,100,22,"#35d04f")}
+     if(variant===2){T("SWAMP INVENTORY",355,62,19,"#35d04f");for(let i=0;i<6;i++)R(360+i*28,95+Math.sin(q*4+i)*10,18,50,"#247d35");cat(420,160,"#eee");T("VERY NORMAL.",405,205,16,"#fff")}
+   }else if(cls==="natalie"){
+     person(280,155,"#6f55c9","#4b2e22","#fff");
+     if(variant===0){book(303,126,"#d62929");R(334,130,Math.floor(q*6)%2?22:5,29,"#fff4d8");for(let i=0;i<5;i++)book(48+i*48,187-i*27,i%2?"#6f55c9":"#d62929");T("TBR: &#8734;",410,96,20,"#f5df45")}
+     if(variant===1){for(let i=0;i<7;i++)book(345+(i%3)*55,190-Math.floor(i/3)*42,i%2?"#6f55c9":"#d62929");T("BOOK FORT",405,60,21,"#fff");T("DO NOT DISTURB",365,92,17,"#f5df45")}
+     if(variant===2){book(315,120,"#d62929");T("ONE MORE CHAPTER",340,62,19,"#fff");T("1",440,102,34,"#f5df45");T("...later",405,190,17,"#fff")}
+   }else{
+     kaylaPerson(245,155);
+     if(variant===0){book(269,126,"#d62929");dragon(390,162);let fire=18+Math.abs(Math.sin(q*10))*34;R(477,128,fire,13,"#f5df45");R(485,132,fire*.65,6,"#d62929");T("DRAGON DUTY",382,72,20,"#35d04f");T("TAYLOR STATUS: UNSUPERVISED",300,101,14,"#fff")}
+     if(variant===1){book(270,126,"#6f55c9");T("BOOK BUDGET",382,62,20,"#fff");R(385,82,130,25,"#222");R(390,87,112,15,"#35d04f");T("PROTECTED",400,130,21,"#35d04f");dragon(410,166)}
+     if(variant===2){T("SUPERVISING TAYLOR",340,60,19,"#fff");T("...",438,92,26,"#f5df45");card(380,135,"#f5df45");R(430,145,50,25,"#35d04f");T("$",448,164,18,"#082c11");T("ABSOLUTELY NOT.",350,205,19,"#d62929")}
+   }
+   pixelAnimId=requestAnimationFrame(frame);
+ }
+ pixelAnimId=requestAnimationFrame(frame);
+}
+async function playPixelLoader(name){
+ const cfg=PIXEL_LOADERS[name]||{cls:"taylor",msgs:["LOADING TRADE TERMINAL..."]};
+ const box=$("pixelLoad"),fill=$("pixelFill"),pct=$("pixelPct"),msg=$("pixelMsg");
+ $("pixelWho").textContent=name;
+ $("pixelScene").className="pixelScene scene-"+cfg.cls;
+ startPixelAnimation(cfg.cls);
+ msg.textContent=cfg.msgs[Math.floor(Math.random()*cfg.msgs.length)];
+ fill.style.width="0%";pct.textContent="0%";box.classList.remove("hidden");
+ const duration=5000,start=performance.now();
+ await new Promise(resolve=>{
+  function frame(now){
+   const p=Math.min(1,(now-start)/duration),n=Math.round(p*100);
+   fill.style.width=n+"%";pct.textContent=n+"%";
+   if(p<1)requestAnimationFrame(frame);else resolve();
+  }requestAnimationFrame(frame);
+ });
+ msg.textContent="TRADE TERMINAL READY!";
+ await new Promise(r=>setTimeout(r,1000));
+ box.classList.add("hidden");cancelAnimationFrame(pixelAnimId);
+}
+
+async function loadEmployees(){
+ try{
+  const r=await fetch(SB+"/functions/v1/trade-terminal-auth",{headers:{apikey:PK}});
+  const d=await r.json();if(!r.ok)throw Error(d.error||"Could not load employees.");
+  TRADE_EMPLOYEES=d.employees||[];
+  $("loginEmployeeSelect").innerHTML=TRADE_EMPLOYEES.map(x=>`<option value="${x.id}">${esc(x.display_name)}</option>`).join("");
+ }catch(e){note("loginStatus",e.message,true)}
+}
+async function login(){
+ const employeeId=Number($("loginEmployeeSelect").value),pin=$("loginPin").value.trim();
+ if(!employeeId||!/^[0-9]{4}$/.test(pin))return note("loginStatus","Choose your name and enter your 4-digit PIN.",true);
+ try{
+  note("loginStatus","Verifying...");
+  const r=await fetch(SB+"/functions/v1/trade-terminal-auth",{method:"POST",headers:{apikey:PK,"Content-Type":"application/json"},body:JSON.stringify({employee_id:employeeId,pin})});
+  const d=await r.json();if(!r.ok)throw Error(d.error||"Incorrect PIN.");
+  const vr=await fetch(SB+"/auth/v1/verify",{method:"POST",headers:{apikey:PK,"Content-Type":"application/json"},body:JSON.stringify({type:"magiclink",token_hash:d.token_hash})});
+  const s=await vr.json();if(!vr.ok||!s.access_token)throw Error(s?.msg||s?.error_description||"Could not start terminal session.");
+  token=s.access_token;refreshToken=s.refresh_token||"";sessionStorage.setItem("tt_token",token);sessionStorage.setItem("tt_refresh",refreshToken);
+  employee={id:d.employee.id,display_name:d.employee.display_name,role:d.employee.role,trade_pin_verified:true};
+  $("employeeName").textContent=employee.display_name;
+  $("loginView").classList.add("hidden");
+  $("pixelLoad").classList.add("hidden");
+  $("app").classList.remove("hidden");
+  $("liveState").textContent="LOADING LIVE RULES...";
+  render();
+  $("gameSearch")?.focus();
+  loadLive().then(()=>render()).catch(()=>{});
+ }catch(e){note("loginStatus",e.message,true);$("loginPin").value="";$("loginPin").focus()}
+}
+async function boot(){
+ applyQuicksaveLogos();
+ await loadEmployees();
+ $("loginView").classList.remove("hidden");$("app").classList.add("hidden");
+}
+async function loadLive(){try{const [s,c]=await Promise.all([api("/rest/v1/trade_settings?select=id,settings"),api("/rest/v1/console_values?select=*&active=eq.true&order=sort_order.asc")]);s.forEach(x=>rules[x.id]=x.settings);consoles=c;$("consoleSelect").innerHTML='<option value="">Select console...</option>'+c.map((x,i)=>`<option value="${i}">${esc(x.console_name)}</option>`).join("");$("liveState").textContent="LIVE RULES CONNECTED";}catch(e){$("liveState").textContent="LIVE RULES ERROR"}}
+function requireEmployeePin(required=false){
+ show(`<h2>Who's Running This Trade?</h2><div class="notice">Choose your name and enter your 4-digit company PIN. This employee will be attached to the trade and printed on paperwork.</div><div style="margin-top:12px"><label class="label">EMPLOYEE</label><select id="tradeEmployeeSelect" style="width:100%">${TRADE_EMPLOYEES.map((x,i)=>`<option value="${i}">${esc(x.name)}</option>`).join("")}</select></div><div style="margin-top:10px"><label class="label">PIN</label><input id="tradeEmployeePin" inputmode="numeric" maxlength="4" type="password" style="width:100%;font-size:22px;letter-spacing:8px;text-align:center" placeholder="****"></div><div id="pinStatus" class="notice">Employee verification required.</div><div class="flex" style="margin-top:12px"><button id="verifyEmployeePin" class="primary">START TRADE</button>${required?"":'<button id="cancelEmployeePin">Cancel</button>'}</div>`);
+ const verify=()=>{const e=TRADE_EMPLOYEES[+$("tradeEmployeeSelect").value],p=$("tradeEmployeePin").value.trim();if(!e||p!==e.pin){note("pinStatus","Incorrect PIN.",true);$("tradeEmployeePin").value="";$("tradeEmployeePin").focus();return}employee={...(authEmployee||{}),display_name:e.name,trade_pin_verified:true};$("employeeName").textContent=e.name;hide();render();$("gameSearch")?.focus()};
+ $("verifyEmployeePin").onclick=verify;$("tradeEmployeePin").onkeydown=e=>{if(e.key==="Enter")verify()};if($("cancelEmployeePin"))$("cancelEmployeePin").onclick=hide;setTimeout(()=>$("tradeEmployeePin")?.focus(),0);
+}
+function ensureEmployee(){if(employee)return true;requireEmployeePin(true);return false}
+function updateStatus(){$("statusBar").textContent=`LOOKUP ${document.querySelector(".mode.active").textContent} | CUSTOMER ${customer?customerDisplayName(customer):"Not selected"} | EMPLOYEE ${employee?.display_name||"--"} | PAYOUT ${$("payoutType").value}`;}
+function baseTradeTotal(){return items.reduce((a,x)=>a+x.trade_offer*(x.qty||1),0)}
+function baseCashTotal(){return items.reduce((a,x)=>a+x.cash_offer*(x.qty||1),0)}
+function promoAmount(){const b=baseTradeTotal();if(promotion.type==="percent")return b*(promotion.value/100);if(promotion.type==="dollar")return promotion.value;return 0}
+function finalTradeTotal(){return Math.max(0,baseTradeTotal()+promoAmount())}
+function render(){$("itemCount").textContent=items.length+" ITEM"+(items.length===1?"":"S");$("emptyTrade").classList.toggle("hidden",items.length>0);$("tradeTable").classList.toggle("hidden",items.length===0);$("tradeBody").innerHTML=items.map((x,i)=>`<tr data-i="${i}" style="${i===selected?"outline:2px solid #31566b":""}"><td>${esc(x.title)}</td><td class="muted">${esc(x.details)}</td><td class="qty">${x.qty||1}</td><td class="money">${money(x.cash_offer*(x.qty||1))}</td><td class="money">${money(x.trade_offer*(x.qty||1))}</td></tr>`).join("");const tradeShown=money(finalTradeTotal()),cashShown=money(baseCashTotal()),promoShown=promotion.type?`Promotion ${promotion.type==="percent"?"+"+promotion.value+"%":"+"+money(promotion.value)} = +${money(promoAmount())}`:"";$("tradeTotal").textContent=tradeShown;$("cashTotal").textContent=cashShown;$("promoSummary").textContent=promoShown;$("tradeTotalTop").textContent=tradeShown;$("cashTotalTop").textContent=cashShown;$("promoSummaryTop").textContent=promoShown;const payoutType=String($("payoutType").value||"trade").toLowerCase();$("readyAmount").textContent=payoutType==="cash"?cashShown:tradeShown;
+$("completeBtn").textContent=completedTrade?"UPDATE PAYOUT & REPRINT":"COMPLETE TRADE";
+$("clearTradeBtn").disabled=!!completedTrade;$("saveTradeBtn").disabled=!!completedTrade;
+updateStatus();if(completedTrade)$("statusBar").textContent=`COMPLETED ${completedTrade.transaction_number} | PAYOUT CAN STILL BE UPDATED | CLICK NEW TRADE WHEN FINISHED`;}
+function addItem(x){items.push({qty:1,...x});selected=items.length-1;render()}
+document.querySelectorAll(".mode").forEach(b=>b.onclick=()=>{document.querySelectorAll(".mode").forEach(x=>x.classList.remove("active"));b.classList.add("active");document.querySelectorAll(".lookupPane").forEach(x=>x.classList.add("hidden"));$(b.dataset.mode+"Lookup").classList.remove("hidden");updateStatus()});
+$("tradeBody").onclick=e=>{const tr=e.target.closest("tr");if(tr){selected=Number(tr.dataset.i);render()}};
+$("tradeBody").ondblclick=e=>{const tr=e.target.closest("tr");if(!tr)return;selected=Number(tr.dataset.i);const x=items[selected],q=parseInt(prompt("Quantity:",x.qty||1),10);if(q>0){x.qty=q;render()}};
+$("tradeBody").oncontextmenu=e=>{const tr=e.target.closest("tr");if(!tr)return;e.preventDefault();selected=Number(tr.dataset.i);render();const x=items[selected],m=$("contextMenu");const cardCondition=x?.item_type==="tcg"?'<button data-a="cardCondition">Adjust Card Condition / Reprice</button>':"";m.innerHTML='<button data-a="qty">Edit Quantity</button><button data-a="offer">Adjust Offer</button>'+cardCondition+'<button data-a="condition">Mark Poor / Defective</button><button data-a="note">Add Item Note</button><hr style="border-color:#344554"><button data-a="remove">Remove Item</button>';m.style.left=Math.min(e.clientX,window.innerWidth-230)+"px";m.style.top=Math.min(e.clientY,window.innerHeight-260)+"px";m.classList.remove("hidden")};
+document.addEventListener("click",e=>{if(!e.target.closest("#contextMenu"))$("contextMenu").classList.add("hidden")});
+$("contextMenu").onclick=e=>{const a=e.target.dataset.a;if(!a||selected<0)return;const x=items[selected];$("contextMenu").classList.add("hidden");if(a==="remove"){$("removeItem").click();return}if(a==="offer"){$("editItem").click();return}if(a==="qty"){const q=parseInt(prompt("Quantity:",x.qty||1),10);if(q>0){x.qty=q;render()}return}if(a==="cardCondition"){adjustImportedCardCondition(x);return}if(a==="condition"){const v=prompt("Enter condition mark: Normal, Poor, or Defective","Poor");if(v===null)return;const z=v.trim().toLowerCase();if(!["normal","poor","defective"].includes(z))return alert("Use Normal, Poor, or Defective.");x.metadata={...(x.metadata||{}),item_condition:z[0].toUpperCase()+z.slice(1)};x.details=x.details.replace(/ &#8226; Condition: (Poor|Defective|Normal)/i,"");if(z!=="normal")x.details+=" &#8226; Condition: "+(z[0].toUpperCase()+z.slice(1));render();return}if(a==="note"){const n=prompt("Internal item note:","");if(n&&n.trim()){x.details+=" &#8226; Note: "+n.trim();render()}}};
+$("removeItem").onclick=()=>{if(selected<0)return;items.splice(selected,1);selected=Math.min(selected,items.length-1);render()};
+$("editItem").onclick=()=>{if(selected<0)return;const x=items[selected];show(`<h2>Edit Offer</h2><div class="formgrid"><div><label class="label">TRADE</label><input id="et" type="number" step=".01" value="${x.trade_offer}"></div><div><label class="label">CASH</label><input id="ec" type="number" step=".01" value="${x.cash_offer}"></div></div><div class="flex" style="margin-top:12px"><button id="saveEdit" class="primary">Save</button><button onclick="document.getElementById('modal').classList.add('hidden')">Cancel</button></div>`);$("saveEdit").onclick=()=>{x.trade_offer=+$("et").value;x.cash_offer=+$("ec").value;hide();render()}};
+function show(h){$("dialog").innerHTML=h;$("modal").classList.remove("hidden")}function hide(){$("modal").classList.add("hidden")}
+$("modal").onclick=e=>{if(e.target===$("modal"))hide()};
+$("customItemBtn").onclick=()=>{show(`<h2>Add Custom Item</h2><div class="formgrid"><div><label class="label">ITEM NAME</label><input id="customTitle"></div><div><label class="label">DETAILS / NOTE</label><input id="customDetails"></div><div><label class="label">TRADE OFFER</label><input id="customTrade" type="number" min="0" step=".01"></div><div><label class="label">CASH OFFER</label><input id="customCash" type="number" min="0" step=".01"></div></div><button id="addCustomItem" class="primary" style="margin-top:12px">Add Custom Item</button>`);$("addCustomItem").onclick=()=>{const title=$("customTitle").value.trim();if(!title)return alert("Enter an item name.");addItem({item_type:"other",title,details:$("customDetails").value.trim()||"Custom item",market_value:null,trade_offer:+$("customTrade").value||0,cash_offer:+$("customCash").value||0,metadata:{custom:true}});hide()}};
+function customerDisplayName(x){return [x?.first_name,x?.last_name].filter(Boolean).join(" ").trim()}
+function customerSearchPath(q){const term="*"+q.trim()+"*";const fields=["first_name","last_name","phone","email","drivers_license"];return "/rest/v1/customers?select=*&or=("+fields.map(f=>f+".ilike."+encodeURIComponent(term)).join(",")+")&order=first_name.asc,last_name.asc&limit=30"}
+$("lookupCustomer").onclick=()=>{show(`<h2>Customer Lookup</h2><div class="flex"><input id="cq" class="grow" placeholder="Name, phone, email, or driver's license"><button id="cs" class="primary">Search</button></div><div id="cr" class="results"></div>`);const run=async()=>{const q=$("cq").value.trim();if(!q)return;$("cr").innerHTML='<div class="notice">Searching...</div>';try{let d=await api(customerSearchPath(q));d=d.sort((a,b)=>customerDisplayName(a).localeCompare(customerDisplayName(b),undefined,{sensitivity:"base"}));$("cr").innerHTML=d.length?d.map(x=>`<div class="result pickCustomer" data-id="${x.id}"><div><strong>${esc(customerDisplayName(x))}</strong><small>${esc(x.phone||"")} &#8226; ${esc(x.email||"")} &#8226; DL ${esc(x.drivers_license||"")}</small></div><span>SELECT</span></div>`).join(""):'<div class="notice">No matching customers.</div>';$("cr").onclick=e=>{const r=e.target.closest(".pickCustomer");if(!r)return;customer=d.find(x=>String(x.id)===String(r.dataset.id));setCustomer();hide()}}catch(e){$("cr").innerHTML='<div class="notice error">'+esc(e.message)+'</div>'}};$("cs").onclick=run;$("cq").onkeydown=e=>{if(e.key==="Enter")run()};setTimeout(()=>$("cq")?.focus(),0)};
+function customerForm(title,c={}){show(`<h2>${title}</h2><div class="formgrid"><div><label class="label">FIRST NAME</label><input id="fn" value="${esc(c.first_name||"")}"></div><div><label class="label">LAST NAME</label><input id="ln" value="${esc(c.last_name||"")}"></div><div><label class="label">PHONE</label><input id="ph" value="${esc(c.phone||"")}"></div><div><label class="label">EMAIL</label><input id="em" value="${esc(c.email||"")}"></div><div><label class="label">DRIVER'S LICENSE / ID</label><input id="dl" value="${esc(c.drivers_license||"")}"></div></div><div style="margin-top:10px"><label class="label">NOTES</label><input id="nt" style="width:100%" value="${esc(c.notes||"")}"></div><button id="saveCust" class="primary" style="margin-top:12px">Save Customer</button>`);$("saveCust").onclick=async()=>{const b={first_name:$("fn").value.trim(),last_name:$("ln").value.trim(),phone:$("ph").value.trim()||null,email:$("em").value.trim()||null,drivers_license:$("dl").value.trim()||null,notes:$("nt").value.trim()||null,updated_at:new Date().toISOString()};try{let d;if(c.id)d=await api("/rest/v1/customers?id=eq."+c.id,{method:"PATCH",headers:{Prefer:"return=representation"},body:JSON.stringify(b)});else d=await api("/rest/v1/customers",{method:"POST",headers:{Prefer:"return=representation"},body:JSON.stringify(b)});customer=d[0];setCustomer();hide()}catch(e){alert("Could not save customer: "+e.message)}}}
+$("newCustomer").onclick=()=>customerForm("New Customer");
+$("editCustomer").onclick=()=>{if(!customer)return alert("Select a customer first.");customerForm("Edit Customer",customer)};
+function setCustomer(){$("customerName").textContent=customerDisplayName(customer)||"CUSTOMER";$("customerPhone").textContent=customer.phone||"--";$("customerEmail").textContent=customer.email||"--";$("customerDL").textContent=customer.drivers_license||"--";$("customerStatus").textContent="Customer selected";updateStatus()}
+$("clearCustomer").onclick=()=>{customer=null;$("customerName").textContent="NO CUSTOMER SELECTED";$("customerPhone").textContent="--";$("customerEmail").textContent="--";$("customerDL").textContent="--";$("customerStatus").textContent="Choose Lookup or New Customer to begin.";updateStatus()};
+$("historyCustomer").onclick=async()=>{if(!customer)return;const d=await api("/rest/v1/trade_transactions?select=*&customer_id=eq."+customer.id+"&order=created_at.desc&limit=50");show(`<h2>Trade History</h2>${d.length?d.map(x=>`<div class="result"><div><strong>${esc(x.transaction_number)}</strong><small>${new Date(x.created_at).toLocaleString()} &#8226; ${esc(x.payout_type)}</small></div><b>${money(x.total)}</b></div>`).join(""):'<div class="notice">No prior trades.</div>'}`)};
+
+function gameDisc(m){const r=rules.games||{};if(m>=+(r.monthly_no_cutoff??20))return 0;if(m>=+(r.monthly_5_cutoff??10))return .05;if(m>=+(r.monthly_10_cutoff??5))return .10;if(m>=+(r.monthly_20_cutoff??2))return .20;if(m>=+(r.monthly_30_cutoff??.01))return .30;return +(r.missing_volume_discount??.35)}
+function gamePay(p,d){const r=rules.games||{};if(p<+(r.buy_price_threshold??2.75))return{trade:+(r.override_trade??.25),cash:+(r.override_cash??.15)};return{trade:+(p*(1-d)).toFixed(2),cash:+(p*(+(r.cash_rate??.60))*(1-d)).toFixed(2)}}
+async function processGameInput(){const q=$("gameSearch").value.trim();if(!q)return;if(/^QS[-_ ]?/i.test(q)){await recallQuote(q.replace(/[_ ]+/g,"-"));return}await searchGame()}
+$("gameSearchBtn").onclick=processGameInput;$("gameSearch").onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();processGameInput()}};
+async function searchGame(){const q=$("gameSearch").value.trim();if(!q)return;const isUPC=/^\d{6,14}$/.test(q);$("gameResults").innerHTML='<div class="notice">Searching PriceCharting...</div>';try{const u=isUPC?`https://www.pricecharting.com/api/product?t=${PC}&upc=${encodeURIComponent(q)}`:`https://www.pricecharting.com/api/products?t=${PC}&q=${encodeURIComponent(q)}`;const r=await fetch(u),d=await r.json();const list=d.products||((d.status==="success")?[d]:[]);if(isUPC&&list.length===1){$("gameResults").innerHTML="";quoteGame(list[0],true);return}$("gameResults").innerHTML=list.slice(0,20).map((x,i)=>`<div class="result gamePick" data-i="${i}"><div><strong>${esc(x["product-name"])}</strong><small>${esc(x["console-name"])} &#8226; Loose buy ${money((+x["retail-loose-buy"]||0)/100)} &#8226; CIB buy ${money((+x["retail-cib-buy"]||0)/100)}</small></div><span>SELECT</span></div>`).join("")||'<div class="notice">No matching games.</div>';$("gameResults").onclick=e=>{const z=e.target.closest(".gamePick");if(z)quoteGame(list[+z.dataset.i],false)}}catch(e){$("gameResults").innerHTML='<div class="notice error">'+esc(e.message)+'</div>'}}
+function quoteGame(x,fromScan=false){const annual=+(x["sales-volume"]||0),monthly=annual>0?annual/12:0,d=gameDisc(monthly);$("gameResults").innerHTML="";$("gameQuote").innerHTML=`<div class="quote"><b>${esc(x["product-name"])}</b> <span class="muted">(${esc(x["console-name"])})</span>${fromScan?'<div class="notice success">UPC validated. Choose condition.</div>':""}<div class="tiny muted">No manual? Select Loose. Sales pace ~${monthly.toFixed(1)}/mo &#8226; velocity adjustment -${Math.round(d*100)}%</div><div class="flex" style="margin-top:9px"><button class="primary" id="addLoose">Loose ${money((+x["retail-loose-buy"]||0)/100)}</button><button class="primary" id="addCib">Complete / CIB ${money((+x["retail-cib-buy"]||0)/100)}</button></div></div>`;function go(kind){const p=(+(x[kind==="CIB"?"retail-cib-buy":"retail-loose-buy"]||0))/100,v=gamePay(p,d);addItem({item_type:"game",title:x["product-name"],details:`${x["console-name"]} &#8226; ${kind}${d?` &#8226; Velocity -${Math.round(d*100)}%`:""}`,market_value:p,trade_offer:v.trade,cash_offer:v.cash,metadata:{console:x["console-name"],format:kind,sales_volume:annual}});$("gameQuote").innerHTML="";$("gameSearch").value=""}$("addLoose").onclick=()=>go("Loose");$("addCib").onclick=()=>go("CIB");
+ const keyHandler=e=>{if($("gameQuote").innerHTML&&document.activeElement?.tagName!=="INPUT"){if(e.key.toLowerCase()==="l"){document.removeEventListener("keydown",keyHandler);go("Loose")}else if(e.key.toLowerCase()==="c"){document.removeEventListener("keydown",keyHandler);go("CIB")}}};document.addEventListener("keydown",keyHandler,{once:false})
+}
+
+function cardPay(m){const r=rules.tcg||{};if(m<=+(r.floor_max_market??1.5))return{trade:+(r.floor_trade??.25),cash:+(r.floor_cash??.20)};if(m<+(r.mid_max_market??10))return{trade:m*+(r.mid_trade_rate??.45),cash:m*+(r.mid_cash_rate??.40)};return{trade:m*+(r.high_trade_rate??.70),cash:m*+(r.high_cash_rate??.60)}}
+function importedCardCashAllowed(x){const g=String(x?.metadata?.game||x?.metadata?.game_label||"").toLowerCase();return !(g.includes("gundam")||g.includes("magic"))}
+function normCardText(v){return String(v||"").toLowerCase().replace(/[^a-z0-9]+/g," ").trim()}
+async function adjustImportedCardCondition(x){
+ const md=x.metadata||{}, current=md.condition||"Near Mint", printing=md.printing||"";
+ try{
+  const cleanTitle=String(x.title||"").replace(/\s*QS-[A-Z0-9]+\s*$/i,"").trim();
+  async function conditionSearch(q){
+   const r=await fetch("https://api.justtcg.com/v1/cards?q="+encodeURIComponent(q),{headers:{"x-api-key":JT,"accept":"application/json"}});
+   if(!r.ok)throw Error("JustTCG returned HTTP "+r.status);
+   const d=await r.json();return Array.isArray(d)?d:(d.data||d.cards||[]);
+  }
+  let list=await conditionSearch(cleanTitle);
+  if(!list.length&&md.card_number)list=await conditionSearch(cleanTitle+" "+md.card_number);
+  const setN=normCardText(md.set),numN=normCardText(md.card_number),titleN=normCardText(x.title);
+  const c=list.find(c=>(!titleN||normCardText(c.name)===titleN)&&(!setN||normCardText(c.set_name||c.setName||c.set?.name)===setN)&&(!numN||normCardText(c.number||c.card_number)===numN))
+       ||list.find(c=>(!numN||normCardText(c.number||c.card_number)===numN)&&(!setN||normCardText(c.set_name||c.setName||c.set?.name)===setN))
+       ||list[0];
+  if(!c)throw Error("Could not match this card in JustTCG.");
+  const vs=variants(c),samePrinting=vs.filter(v=>!printing||normCardText(v.printing||v.finish||"Normal")===normCardText(printing));
+  const pool=samePrinting.length?samePrinting:vs;
+  const conditions=[...new Set(pool.map(v=>v.condition).filter(Boolean))];
+  if(!conditions.length)throw Error("JustTCG did not return condition pricing for this card.");
+  show(`<h2>Adjust Card Condition</h2><div class="notice"><strong>${esc(x.title)}</strong><br>${esc(md.set||"")} ${md.card_number?"&#8226; #"+esc(md.card_number):""}<br>Printing: ${esc(printing||"Default")}</div><div style="margin-top:12px"><label class="label">CONDITION</label><select id="adjustCardCondition" style="width:100%">${conditions.map(cn=>`<option ${normCardText(cn)===normCardText(current)?"selected":""}>${esc(cn)}</option>`).join("")}</select></div><div id="adjustCardPreview" class="quote" style="margin-top:10px"></div><div class="flex" style="margin-top:12px"><button id="applyCardCondition" class="primary">Apply Condition & Reprice</button><button id="cancelCardCondition">Cancel</button></div>`);
+  const sel=$("adjustCardCondition"),preview=$("adjustCardPreview");
+  function calc(){
+   const cond=sel.value,v=pool.find(v=>normCardText(v.condition)===normCardText(cond))||pool[0],m=vprice(v)||+(c.marketPrice||c.market_price||0),p=cardPay(m),cash=importedCardCashAllowed(x)?p.cash:0;
+   preview.innerHTML=`Market <strong>${money(m)}</strong> &#8226; Trade <strong>${money(p.trade)}</strong> &#8226; Cash <strong>${importedCardCashAllowed(x)?money(cash):"Trade Only"}</strong>`;
+   return{cond,m,p,cash};
+  }
+  sel.onchange=calc;calc();
+  $("cancelCardCondition").onclick=hide;
+  $("applyCardCondition").onclick=()=>{const z=calc();x.market_value=+z.m.toFixed(2);x.trade_offer=+z.p.trade.toFixed(2);x.cash_offer=+z.cash.toFixed(2);x.metadata={...md,condition:z.cond,condition_adjusted_in_store:true,original_website_condition:md.original_website_condition||current};let detail=x.details||"";if(current)detail=detail.replace(new RegExp(" &#8226; "+current.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")+"(?= &#8226;|$)","i")," &#8226; "+z.cond);detail=detail.replace(/Market \$[\d,.]+/i,"Market "+money(z.m));x.details=detail;hide();render();};
+ }catch(e){alert("Could not adjust card condition: "+e.message)}
+}
+
+$("cardSearchBtn").onclick=searchCard;$("cardSearch").onkeydown=e=>{if(e.key==="Enter")searchCard()};
+async function searchCard(){const q=$("cardSearch").value.trim();if(!q)return;$("cardResults").innerHTML='<div class="notice">Searching JustTCG...</div>';try{const r=await fetch("https://api.justtcg.com/v1/cards?q="+encodeURIComponent(q),{headers:{"x-api-key":JT,"accept":"application/json"}}),d=await r.json();const list=Array.isArray(d)?d:(d.data||d.cards||[]);if(list.length===1){$("cardResults").innerHTML="";quoteCard(list[0],true);return}$("cardResults").innerHTML=list.slice(0,25).map((x,i)=>`<div class="result cardPick" data-i="${i}"><div><strong>${esc(x.name||"Unknown")}</strong><small>${esc(x.set_name||x.setName||x.set?.name||"")} &#8226; #${esc(x.number||x.card_number||"")}</small></div><span>SELECT</span></div>`).join("")||'<div class="notice">No matching cards.</div>';$("cardResults").onclick=e=>{const z=e.target.closest(".cardPick");if(z)quoteCard(list[+z.dataset.i],false)}}catch(e){$("cardResults").innerHTML='<div class="notice error">'+esc(e.message)+'</div>'}}
+function variants(c){return c.variants||c.prices||[]}function vprice(v){return +(v.marketPrice??v.market_price??v.price??v.market??0)}
+function quoteCard(c,exactMatch=false){const vs=variants(c);$("cardResults").innerHTML="";const conditions=[...new Set(vs.map(v=>v.condition).filter(Boolean))];const printings=[...new Set(vs.map(v=>v.printing||v.finish).filter(Boolean))];const def=vs.find(x=>/near mint/i.test(x.condition||""))||vs[0]||c;const dc=def.condition||conditions[0]||"Near Mint",dp=def.printing||def.finish||printings[0]||"Normal";$("cardQuote").innerHTML=`<div class="quote"><b>${esc(c.name)}</b>${exactMatch?'<div class="notice success">Exact card match found. Choose condition and printing.</div>':""}<div class="tiny muted">${esc(c.set_name||c.setName||c.set?.name||"")} &#8226; #${esc(c.number||"")}</div><div class="formgrid" style="margin-top:9px"><div><label class="label">CONDITION</label><select id="cardCondition" style="width:100%">${(conditions.length?conditions:[dc]).map(x=>`<option ${x===dc?"selected":""}>${esc(x)}</option>`).join("")}</select></div><div><label class="label">PRINTING</label><select id="cardPrinting" style="width:100%">${(printings.length?printings:[dp]).map(x=>`<option ${x===dp?"selected":""}>${esc(x)}</option>`).join("")}</select></div></div><div id="cardOffer" style="margin-top:8px"></div><button id="addCard" class="primary" style="margin-top:9px">Add Card</button></div>`;function selectedVariant(){const co=$("cardCondition").value,pr=$("cardPrinting").value;return vs.find(v=>(v.condition||"")===co&&(v.printing||v.finish||"Normal")===pr)||vs.find(v=>(v.condition||"")===co)||vs.find(v=>(v.printing||v.finish||"Normal")===pr)||def}function refresh(){const v=selectedVariant(),m=vprice(v)||+(c.marketPrice||c.market_price||0),p=cardPay(m);$("cardOffer").innerHTML=`Market ${money(m)} &#8226; Trade ${money(p.trade)} &#8226; Cash ${money(p.cash)}`;return{v,m,p}}$("cardCondition").onchange=refresh;$("cardPrinting").onchange=refresh;refresh();$("addCard").onclick=()=>{const {v,m,p}=refresh();addItem({item_type:"tcg",title:c.name,details:`${c.set_name||c.setName||c.set?.name||""} &#8226; #${c.number||""} &#8226; ${$("cardCondition").value} &#8226; ${$("cardPrinting").value}`,market_value:m,trade_offer:+p.trade.toFixed(2),cash_offer:+p.cash.toFixed(2),metadata:{card_id:c.id||c.tcgplayerId||c.cardId||null,condition:$("cardCondition").value,printing:$("cardPrinting").value}});$("cardQuote").innerHTML="";$("cardSearch").value=""}}
+$("consoleSelect").onchange=()=>{const c=consoles[+$("consoleSelect").value];if(!c){$("consoleAccessories").innerHTML="";$("consoleQuote").innerHTML="";return};$("consoleAccessories").innerHTML=Object.entries(c.accessories||{}).map(([n,v])=>`<label class="acc"><input type="checkbox" class="missingAcc" data-name="${esc(n)}" data-v="${Math.abs(+v)}"> Missing ${esc(n)} (-${money(Math.abs(+v))})</label>`).join("");document.querySelectorAll(".missingAcc").forEach(x=>x.onchange=quoteConsole);quoteConsole()};
+function quoteConsole(){const c=consoles[+$("consoleSelect").value];if(!c)return;let t=+c.base_trade,ca=+c.base_cash,miss=[];document.querySelectorAll(".missingAcc:checked").forEach(x=>{t-=+x.dataset.v;ca-=+x.dataset.v;miss.push(x.dataset.name)});t=Math.max(0,t);ca=Math.max(0,ca);const existing=$("consoleSerial")?.value||"";$("consoleQuote").innerHTML=`<div class="quote"><b>${esc(c.console_name)}</b><div class="tiny muted">${miss.length?"Missing: "+esc(miss.join(", ")):"Listed accessories included"}</div><div style="margin-top:8px"><label class="label">SERIAL NUMBER</label><input id="consoleSerial" style="width:100%;margin-top:4px" value="${esc(existing)}" placeholder="Scan or enter console serial number"></div><div style="margin-top:8px">Trade ${money(t)} &#8226; Cash ${money(ca)}</div><button id="addConsoleTrade" class="primary" style="margin-top:9px">Add Console to Trade</button></div>`;$("addConsoleTrade").onclick=()=>{const serial=$("consoleSerial").value.trim();if(!serial)return alert("Console serial number is required.");addItem({item_type:"console",title:c.console_name,details:(miss.length?"Missing: "+miss.join(", "):"Listed accessories included")+" &#8226; Serial: "+serial,trade_offer:t,cash_offer:ca,metadata:{missing:miss,serial_number:serial}});$("consoleSelect").value="";$("consoleAccessories").innerHTML="";$("consoleQuote").innerHTML=""}}
+async function recallQuote(code){
+ code=String(code||"").trim().toUpperCase();
+ if(!code)return;
+ 
+ try{
+  const qs=await api("/rest/v1/web_quotes?select=*&quote_code=eq."+encodeURIComponent(code)+"&limit=1");
+  if(!qs.length)throw new Error("Quote not found.");
+  const q=qs[0];
+  if(q.status==="converted")throw new Error("This quote has already been converted to a completed trade.");
+  const qi=await api("/rest/v1/web_quote_items?select=*&quote_id=eq."+q.id+"&order=sort_order.asc,id.asc");
+  if(!qi.length)throw new Error("Quote has no items.");
+  if(items.length&&!confirm("Replace the current trade with website quote "+code+"?"))return;
+  items=qi.map(x=>({item_type:x.item_type,title:x.title,details:(x.details||"").replace(/\s*&#8226;\s*Website quote\s+QS-[A-Z0-9]+\s*$/i,""),market_value:+(x.market_value||0),cash_offer:+(x.cash_offer||0),trade_offer:+(x.trade_offer||0),qty:1,metadata:{...(x.metadata||{}),website_quote_id:q.id,website_quote_code:code,website_estimate_cash:+(x.cash_offer||0),website_estimate_trade:+(x.trade_offer||0)}}));
+  selected=-1; render();
+  await api("/rest/v1/web_quotes?quote_code=eq."+encodeURIComponent(code),{method:"PATCH",headers:{Prefer:"return=minimal"},body:JSON.stringify({status:"recalled"})});
+  
+  $("gameSearch").value=""; $("gameSearch").focus();
+ }catch(e){alert("Could not recall quote: "+e.message)}
+}
+$("recallQuote").onclick=()=>{show(`<h2>Recall Website Quote</h2><div class="notice">Enter or scan the customer's Quote ID.</div><div class="flex" style="margin-top:10px"><input id="modalQuoteCode" class="grow" placeholder="QS-XXXXXX" autofocus><button id="modalQuoteGo" class="primary">Recall</button></div>`);const go=()=>{const v=$("modalQuoteCode").value;hide();recallQuote(v)};$("modalQuoteGo").onclick=go;$("modalQuoteCode").onkeydown=e=>{if(e.key==="Enter")go()};setTimeout(()=>$("modalQuoteCode")?.focus(),0)};
+
+$("promotionBtn").onclick=()=>show(`<h2>Trade Promotion</h2><div class="notice">Promotions increase Trade Credit only. Cash offers are unchanged.</div><div class="formgrid" style="margin-top:12px"><div><label class="label">TYPE</label><select id="promoType" style="width:100%"><option value="percent">Percentage</option><option value="dollar">Dollar Amount</option></select></div><div><label class="label">AMOUNT</label><input id="promoValue" type="number" min="0" step="0.01" value="${promotion.value||""}" placeholder="10 or 25.00"></div></div><div class="flex" style="margin-top:14px"><button id="applyPromo" class="primary">Apply Promotion</button><button id="clearPromo">Clear Promotion</button></div>`);document.addEventListener("click",function promoHandler(e){if(e.target?.id==="applyPromo"){const v=Number($("promoValue").value);if(!isFinite(v)||v<0)return alert("Enter a valid promotion amount.");promotion={type:$("promoType").value,value:v};render();closeModal();document.removeEventListener("click",promoHandler)}else if(e.target?.id==="clearPromo"){promotion={type:null,value:0};render();closeModal();document.removeEventListener("click",promoHandler)}});
+$("payoutType").onchange=()=>{const pt=String($("payoutType").value||"trade").toLowerCase();if(pt==="trade"){$("payoutMethod").value="Trade Credit"}else if($("payoutMethod").value==="Trade Credit"){$("payoutMethod").value="Cash"}render()};
+$("newTradeBtn").onclick=()=>{if(items.length&&!confirm(completedTrade?"Start a new trade? The completed transaction is already saved and can be reopened from Recent Trades.":"Start a new trade and clear the current items?"))return;completedTrade=null;items=[];selected=-1;promotion={type:null,value:0};customer=null;$("clearCustomer").click();render()};
+function priceTag(m){m=Number(m)||0;if(m<=0)return .99;if(m<7){let t=Math.floor(m)+.99;if(t<m)t+=1;return +t.toFixed(2)}if(m<10)return 9.99;let mult=Math.ceil(m/5)*5,t=mult-.01;if(t<m)t+=5;return +t.toFixed(2)}
+function printPriceSheet(){const cards=items.filter(x=>x.item_type==="tcg"&&Number(x.market_value)>=0).sort((a,b)=>a.title.localeCompare(b.title));if(!cards.length)return alert("No TCG card entries are in the current trade.");const rows=cards.map(x=>`<tr><td>${x.qty||1}</td><td>${esc(x.title)}</td><td style="text-align:right">${money(x.market_value||0)}</td><td style="text-align:right">${money(priceTag(x.market_value||0))}</td></tr>`).join("");const w=window.open("","_blank");w.document.write(`<!doctype html><html><head><style>body{font-family:Arial,sans-serif;padding:38px;color:#000}h1{font-size:20px;margin-bottom:4px}.meta{font-size:12px;margin-bottom:22px}table{width:100%;border-collapse:collapse}th,td{padding:7px;border-bottom:1px solid #bbb;text-align:left;font-size:12px}th{font-weight:bold}.sign{margin-top:35px;line-height:2}@media print{button{display:none}}</style>
+<style>
+.pixelLoad{position:fixed;inset:0;z-index:99999;background:#0b0d0c;display:grid;place-items:center;padding:20px}
+.pixelLoad.hidden{display:none!important}
+.pixelStage{width:min(620px,94vw);text-align:center;color:#fff;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+.pixelScene{height:280px;position:relative;overflow:hidden;border:4px solid #fff;background:linear-gradient(#171c19 0 72%,#101311 72%);box-shadow:8px 8px 0 #000;margin-bottom:18px}
+.pixelWho{font-weight:1000;font-size:clamp(22px,5vw,36px);letter-spacing:2px;text-transform:uppercase}
+.pixelMsg{min-height:42px;margin:10px 0 12px;font-weight:900;font-size:clamp(12px,3vw,16px);letter-spacing:1px}
+.pixelBar{height:22px;border:4px solid #fff;background:#090a09;padding:3px;box-shadow:5px 5px 0 #000}
+.pixelFill{height:100%;width:0;background:repeating-linear-gradient(90deg,#35d04f 0 16px,#35d04f 16px 19px,#0d7e25 19px 22px);transition:width .08s linear}
+.pixelPct{margin-top:8px;font-weight:1000}
+.pxperson{position:absolute;left:50%;bottom:35px;width:54px;height:92px;transform:translateX(-50%);image-rendering:pixelated}
+.pxhead{position:absolute;left:10px;top:0;width:34px;height:34px;background:#e8b98d;box-shadow:-6px 7px 0 #3a261c,6px 7px 0 #3a261c}
+.pxbody{position:absolute;left:5px;top:38px;width:44px;height:42px;background:#242a27;border:5px solid #111}
+.pxleg{position:absolute;bottom:0;width:15px;height:22px;background:#1b1d1c}.pxleg.a{left:8px}.pxleg.b{right:8px}
+.pixelScene .prop{position:absolute;image-rendering:pixelated}
+.scene-taylor .card{width:26px;height:36px;background:#f5df45;border:4px solid #fff;animation:flycard 1s linear infinite}
+.scene-taylor .c1{left:12%;top:30%}.scene-taylor .c2{right:12%;top:18%;animation-delay:.35s}.scene-taylor .cash{width:35px;height:18px;background:#35d04f;border:3px solid #0b5;right:25%;bottom:42px;animation:cash 650ms ease-in-out infinite alternate}
+@keyframes flycard{0%{transform:translateY(80px) rotate(0)}100%{transform:translateY(-100px) rotate(180deg)}}@keyframes cash{to{transform:translate(35px,-45px) rotate(18deg)}}
+.scene-luke .aura{position:absolute;left:50%;bottom:25px;width:145px;height:145px;transform:translateX(-50%);border:8px dashed #f5df45;border-radius:50%;animation:spin .7s linear infinite;box-shadow:0 0 25px #fff}
+.scene-luke .price{right:9%;top:18%;font-size:28px;font-weight:1000;animation:price .45s steps(2) infinite}
+@keyframes spin{to{transform:translateX(-50%) rotate(360deg)}}@keyframes price{50%{transform:scale(1.3)}}
+.scene-anthony .case{width:44px;height:30px;background:#d62929;border:4px solid #fff;top:-35px;animation:bonk 1s ease-in infinite}.scene-anthony .x1{left:28%}.scene-anthony .x2{left:58%;animation-delay:.5s}
+@keyframes bonk{70%{top:95px;transform:rotate(30deg)}100%{top:210px;transform:rotate(90deg)}}
+.scene-beyonca .cat{bottom:32px;font-size:42px;animation:catwalk 1.8s linear infinite}.scene-beyonca .cat2{animation-delay:.8s}
+@keyframes catwalk{from{left:-55px}to{left:105%}}
+.scene-natalie .book,.scene-kayla .book{left:calc(50% + 28px);bottom:65px;width:44px;height:30px;background:#d62929;border:4px solid #fff;transform-origin:left center;animation:page .35s ease-in-out infinite alternate}
+@keyframes page{to{transform:skewY(-12deg) scaleX(.75)}}
+.scene-kayla .dragon{right:13%;bottom:32px;font-size:54px;animation:dragon .8s ease-in-out infinite alternate}.scene-kayla .fire{right:7%;bottom:75px;font-size:32px;animation:fire .35s steps(2) infinite}
+@keyframes dragon{to{transform:translateY(-7px)}}@keyframes fire{50%{transform:scale(1.35) rotate(8deg)}}
+.scene-beyonca:after{content:"SWAMP MODE";position:absolute;right:12px;top:12px;color:#35d04f;font-weight:1000;letter-spacing:2px}
+@media (prefers-reduced-motion:reduce){.pixelScene *{animation-duration:2s!important}.pixelFill{transition:none}}
+</style>
+</head><body><h1>Quicksave Games & Collectibles - TCG Trade-in Price Sheet</h1><div class="meta">Generated: ${new Date().toLocaleString()}<br>Employee (current selection): ${esc(employee?.display_name||"")}</div><table><thead><tr><th>Qty</th><th>Card</th><th style="text-align:right">Market</th><th style="text-align:right">Price Tag</th></tr></thead><tbody>${rows}</tbody></table><div class="sign"><b>Pricing Sign-Off</b><br>Priced By (Name): ________________________________<br>Signature: _______________________________________<br>Date: ____________________ &nbsp;&nbsp; Verified By: ____________________</div><script>window.onload=()=>window.print()<\/script><style id="v79-fast-login">
+#pixelLoad{display:none!important}
+#liveState{transition:opacity .15s ease}
+</style>
+</body></html>`);w.document.close()}
+$("priceSheetBtn").onclick=printPriceSheet;
+async function loadCompletedTrade(txid){
+ const [txs,its]=await Promise.all([api("/rest/v1/trade_transactions?select=*&id=eq."+txid+"&limit=1"),api("/rest/v1/trade_transaction_items?select=*&transaction_id=eq."+txid+"&order=id.asc")]);
+ if(!txs.length)return alert("Trade not found.");const tx=txs[0];let cust=null;if(tx.customer_id){const cs=await api("/rest/v1/customers?select=*&id=eq."+tx.customer_id+"&limit=1");cust=cs[0]||null}
+ lastCompletedTrade={tx,items:its.map(x=>({item_type:x.item_type,title:x.title,details:x.details||"",market_value:x.market_value,cash_offer:+x.cash_offer,trade_offer:+x.trade_offer,qty:+(x.metadata?.qty||1),metadata:x.metadata||{}})),customer:cust};
+ show(`<h2>${esc(tx.transaction_number)}</h2><div class="notice">Completed ${new Date(tx.created_at).toLocaleString()} &#8226; ${esc(tx.payout_type)} &#8226; ${money(tx.total)}</div><div class="actionRow" style="margin-top:12px"><button id="reprintReceipt" class="primary">Reprint Receipt + Price Sheet</button><button id="reprintPrice">Price Sheet Only</button><button id="closeCompleted">Close</button></div>`);
+ $("closeCompleted").onclick=hide;$("reprintReceipt").onclick=()=>{const z=lastCompletedTrade,pt=String(z.tx.payout_type||"trade").toLowerCase();hide();openReceiptPrint(z.tx.transaction_number,pt,+z.tx.subtotal||0,+z.tx.bonus||0,+z.tx.total||0,z.items,z.customer,{type:null,value:0},z.tx.payout_method)};
+ $("reprintPrice").onclick=()=>{const oldItems=items;items=lastCompletedTrade.items;printPriceSheet();items=oldItems};
+}
+$("recentBtn").onclick=async()=>{const saved=JSON.parse(localStorage.getItem("tt_saved_trades")||"[]"),d=await api("/rest/v1/trade_transactions?select=*&order=created_at.desc&limit=40");show(`<h2>Recent / Saved Trades</h2>${saved.length?'<div class="label" style="margin:10px 0">SAVED FOR LATER</div>'+saved.map((x,i)=>`<div class="result savedPick" data-i="${i}"><div><strong>${esc(x.name)}</strong><small>${new Date(x.saved_at).toLocaleString()} &#8226; ${x.items.length} item(s)</small></div><span class="savedBadge">RESUME</span></div>`).join(""):""}<div class="label" style="margin:14px 0 6px">COMPLETED TRADES</div>${d.map(x=>`<div class="result completedPick" data-id="${x.id}"><div><strong>${esc(x.transaction_number)}</strong><small>${new Date(x.created_at).toLocaleString()} &#8226; ${esc(x.payout_type)} &#8226; ${esc(x.payout_method||"")}</small></div><b>${money(x.total)}</b></div>`).join("")||'<div class="notice">No trades yet.</div>'}`);$("dialog").onclick=e=>{const s=e.target.closest(".savedPick");if(s){const z=saved[+s.dataset.i];if(items.length&&!confirm("Replace the current trade with this saved trade?"))return;items=z.items||[];customer=z.customer||null;promotion=z.promotion||{type:null,value:0};employee=z.employee||employee;if(employee)$("employeeName").textContent=employee.display_name||"Employee";if(customer)setCustomer();else $("clearCustomer").click();saved.splice(+s.dataset.i,1);localStorage.setItem("tt_saved_trades",JSON.stringify(saved));hide();render();return}const c=e.target.closest(".completedPick");if(c){hide();loadCompletedTrade(c.dataset.id)}}};
+$("saveTradeBtn").onclick=()=>{if(!items.length)return alert("There is no trade to save.");const saved=JSON.parse(localStorage.getItem("tt_saved_trades")||"[]"),name=prompt("Name this saved trade:",customer?customerDisplayName(customer):"Saved Trade");if(name===null)return;saved.unshift({id:"S-"+Date.now(),name:name.trim()||"Saved Trade",saved_at:new Date().toISOString(),items:JSON.parse(JSON.stringify(items)),customer:customer?JSON.parse(JSON.stringify(customer)):null,promotion:{...promotion},employee:employee?{...employee}:null});localStorage.setItem("tt_saved_trades",JSON.stringify(saved.slice(0,50)));alert("Trade saved for later.");};
+$("clearTradeBtn").onclick=()=>{if(!items.length&&!customer)return;if(!confirm("CLEAR THIS TRADE?\n\nThis removes the current items and customer. Completed trades are not affected."))return;items=[];selected=-1;promotion={type:null,value:0};customer=null;$("clearCustomer").click();render();};
+
+$("completeBtn").onclick=async()=>{
+ if(!ensureEmployee())return;
+ if(!items.length)return alert("Add at least one item.");
+ const pt=String($("payoutType").value||"trade").toLowerCase();
+ if(pt==="trade")$("payoutMethod").value="Trade Credit";
+ const payoutMethod=pt==="cash"?$("payoutMethod").value:"Trade Credit",
+       base=pt==="cash"?baseCashTotal():baseTradeTotal(),
+       bonus=pt==="trade"?promoAmount():0,
+       total=base+bonus,
+       receiptItems=items.map(x=>({...x,metadata:{...(x.metadata||{})}})),
+       receiptCustomer=customer?{...customer}:null;
+ try{
+   await refreshSession().catch(()=>{});
+   if(completedTrade){
+     const txid=completedTrade.id,num=completedTrade.transaction_number;
+     await api("/rest/v1/trade_transactions?id=eq."+txid,{
+       method:"PATCH",headers:{Prefer:"return=minimal"},
+       body:JSON.stringify({payout_type:pt,payout_method:payoutMethod,subtotal:+base.toFixed(2),bonus:+bonus.toFixed(2),total:+total.toFixed(2)})
+     });
+     const savedItems=await api("/rest/v1/trade_transaction_items?select=id&transaction_id=eq."+txid+"&order=id.asc");
+     for(let i=0;i<Math.min(savedItems.length,items.length);i++){
+       const x=items[i],selectedOffer=((pt==="cash"?x.cash_offer:x.trade_offer)*(x.qty||1));
+       await api("/rest/v1/trade_transaction_items?id=eq."+savedItems[i].id,{
+         method:"PATCH",headers:{Prefer:"return=minimal"},
+         body:JSON.stringify({selected_offer:+selectedOffer.toFixed(2)})
+       });
+     }
+     completedTrade={...completedTrade,payout_type:pt,payout_method:payoutMethod,subtotal:+base.toFixed(2),bonus:+bonus.toFixed(2),total:+total.toFixed(2)};
+     lastCompletedTrade={tx:{...completedTrade},items:receiptItems,customer:receiptCustomer};
+     render();
+     openReceiptPrint(num,pt,base,bonus,total,receiptItems,receiptCustomer,{...promotion},payoutMethod);
+     return;
+   }
+   if(!customer&&!confirm("Complete this trade without a selected customer?"))return;
+   const num="TT-"+Date.now().toString().slice(-10);
+   const tx=await api("/rest/v1/trade_transactions",{
+     method:"POST",headers:{Prefer:"return=representation"},
+     body:JSON.stringify({transaction_number:num,customer_id:customer?.id||null,employee_user_id:(await api("/auth/v1/user")).id,trade_employee_id:employee.id,payout_type:pt,payout_method:payoutMethod,subtotal:+base.toFixed(2),bonus:+bonus.toFixed(2),total:+total.toFixed(2),status:"completed"})
+   });
+   const txid=tx[0].id;
+   await api("/rest/v1/trade_transaction_items",{
+     method:"POST",headers:{Prefer:"return=minimal"},
+     body:JSON.stringify(items.map(x=>({transaction_id:txid,item_type:x.item_type,title:x.title,details:x.details,market_value:x.market_value||null,cash_offer:+x.cash_offer.toFixed(2),trade_offer:+x.trade_offer.toFixed(2),selected_offer:+((pt==="cash"?x.cash_offer:x.trade_offer)*(x.qty||1)).toFixed(2),metadata:{...(x.metadata||{}),qty:x.qty||1}})))
+   });
+   const qids=[...new Set(items.map(x=>x.metadata?.website_quote_id).filter(Boolean))];
+   for(const qid of qids){
+     await api("/rest/v1/web_quotes?id=eq."+qid,{method:"PATCH",headers:{Prefer:"return=minimal"},body:JSON.stringify({status:"converted",converted_transaction_id:txid})})
+   }
+   completedTrade={id:txid,transaction_number:num,payout_type:pt,payout_method:payoutMethod,subtotal:+base.toFixed(2),bonus:+bonus.toFixed(2),total:+total.toFixed(2)};
+   lastCompletedTrade={tx:{...completedTrade},items:receiptItems,customer:receiptCustomer};
+   render();
+   openReceiptPrint(num,pt,base,bonus,total,receiptItems,receiptCustomer,{...promotion},payoutMethod);
+ }catch(e){alert((completedTrade?"Could not update payout: ":"Could not complete trade: ")+e.message)}
+};
+function buildPriceSheetPage(receiptItems,num,employeeName){
+ const cards=(receiptItems||[]).filter(x=>x.item_type==="tcg"&&Number(x.market_value)>=0).sort((a,b)=>String(a.title||"").localeCompare(String(b.title||"")));
+ if(!cards.length)return "";
+ const rows=cards.map(x=>`<tr><td>${x.qty||1}</td><td><strong>${esc(x.title)}</strong>${x.details?`<div class="psDetail">${esc(x.details)}</div>`:""}</td><td class="psMoney">${money(x.market_value||0)}</td><td class="psMoney">${money(priceTag(x.market_value||0))}</td></tr>`).join("");
+ return `<section class="priceSheetPage">
+   <div class="psTop"><img src="${LOGO_URI}" class="psLogo"><div><div class="psStore">Quicksave Games & Collectibles</div><div class="psSub">TCG TRADE-IN PRICE SHEET</div></div><div class="psTx">${esc(num)}</div></div>
+   <div class="psMeta">Generated: ${esc(new Date().toLocaleString())} &nbsp; &#8226; &nbsp; Employee: ${esc(employeeName||"&#8212;")}</div>
+   <table class="psTable"><thead><tr><th>Qty</th><th>Card</th><th class="psMoney">Market</th><th class="psMoney">Price Tag</th></tr></thead><tbody>${rows}</tbody></table>
+   <div class="psSign"><strong>Pricing Sign-Off</strong><div class="psLines"><span>Priced By: ________________________________</span><span>Date: ____________________</span></div><div class="psLines"><span>Signature: __________________________________</span><span>Verified By: ____________________</span></div></div>
+ </section>`;
+}
+function openReceiptPrint(num,pt,base,bonus,total,receiptItems,receiptCustomer,receiptPromo,payoutMethodOverride=null){
+ const now=new Date(),
+ stamp=now.toLocaleDateString(undefined,{year:"numeric",month:"short",day:"numeric"})+" &#8226; "+now.toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"}),
+ payoutLabel=pt==="cash"?(payoutMethodOverride||$("payoutMethod").value||"Cash"):"Trade Credit",
+ name=receiptCustomer?customerDisplayName(receiptCustomer):"Walk-in Customer",
+ phone=receiptCustomer?.phone||"&#8212;",
+ dl=receiptCustomer?.drivers_license||"&#8212;",
+ emp=employee?.display_name||authEmployee?.display_name||"&#8212;";
+ const rows=receiptItems.map((x,i)=>{
+   const qty=x.qty||1, unit=pt==="cash"?x.cash_offer:x.trade_offer, line=unit*qty;
+   const details=String(x.details||"").split(" &#8226; ").filter(Boolean).map(d=>`<div class="itemDetail">${esc(d)}</div>`).join("");
+   return `<div class="itemRow">
+     <div class="itemNo">${i+1}</div>
+     <div class="itemMain"><div class="itemTitle">${esc(x.title)}</div>${details}${qty!==1?`<div class="itemDetail">Quantity: ${qty} @ ${money(unit)}</div>`:""}</div>
+     <div class="itemAmount">${money(line)}</div>
+   </div>`;
+ }).join("");
+ const promoLine=pt==="trade"&&bonus>0
+   ? `<div class="sumRow"><span>Promotion Bonus</span><strong>+${money(bonus)}</strong></div>`:"";
+ const html=`<!doctype html><html><head><meta charset="utf-8"><title>Trade Receipt ${esc(num)}</title><style>
+ *{box-sizing:border-box} body{margin:0;background:#ececec;color:#111;font-family:Arial,Helvetica,sans-serif}
+ .sheet{width:8.5in;min-height:11in;margin:0 auto;background:#fff;padding:.42in .5in .38in}
+ .top{display:flex;justify-content:space-between;gap:24px;align-items:flex-start}
+ .brand{display:flex;align-items:center;gap:16px}.logo{width:92px;height:92px;object-fit:contain}
+ .storeName{font-size:22px;font-weight:900;letter-spacing:-.35px}.storeMeta{font-size:11px;line-height:1.55;color:#444;margin-top:5px}
+ .receiptTitle{text-align:right}.receiptTitle .eyebrow{font-size:10px;font-weight:800;letter-spacing:1.7px;text-transform:uppercase}
+ .receiptTitle h1{font-size:30px;line-height:1;margin:7px 0 8px}.receiptTitle .tx{font:700 12px/1.4 monospace}
+ .rule{height:4px;background:#111;margin:20px 0 16px}.metaGrid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+ .metaBox{border:1px solid #cfcfcf;border-radius:7px;padding:10px 12px;min-height:58px}.label{font-size:9px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:#666}.value{font-size:13px;font-weight:800;margin-top:5px}
+ .section{margin-top:18px}.sectionTitle{font-size:10px;font-weight:900;letter-spacing:1.4px;text-transform:uppercase;border-bottom:2px solid #111;padding-bottom:7px}
+ .customerGrid{display:grid;grid-template-columns:2fr 1.2fr 1fr;gap:14px;padding:10px 0 2px}.customerGrid .value{font-size:12px}
+ .itemHead,.itemRow{display:grid;grid-template-columns:30px 1fr 100px;gap:10px}.itemHead{font-size:9px;font-weight:900;letter-spacing:1px;text-transform:uppercase;color:#666;padding:8px 0;border-bottom:1px solid #aaa}
+ .itemRow{padding:10px 0;border-bottom:1px solid #ddd;align-items:start}.itemNo{font-size:11px;color:#777}.itemTitle{font-size:12px;font-weight:800}.itemDetail{font-size:10px;color:#555;margin-top:3px}.itemAmount{text-align:right;font-size:12px;font-weight:900}
+ .summary{margin-left:auto;width:320px;padding-top:12px}.sumRow{display:flex;justify-content:space-between;gap:20px;padding:5px 0;font-size:12px}.grand{border-top:3px solid #111;margin-top:7px;padding-top:10px;font-size:18px;font-weight:900}
+ .legal{margin-top:22px;border:1px solid #bbb;border-radius:7px;padding:12px 14px;font-size:10px;line-height:1.5;color:#333}
+ .signatures{display:grid;grid-template-columns:1fr 160px;gap:24px;margin-top:34px}.sigLine{border-top:1px solid #111;padding-top:6px;font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.8px}
+ .footer{text-align:center;margin-top:24px;border-top:1px solid #ccc;padding-top:12px}.thanks{font-size:13px;font-weight:900}.fine{font-size:9px;color:#666;margin-top:4px}
+ .priceSheetPage{width:8.5in;min-height:11in;margin:0 auto;background:#fff;padding:.42in .5in .38in;page-break-before:always}.psTop{display:flex;align-items:center;gap:14px;border-bottom:4px solid #111;padding-bottom:14px}.psLogo{width:68px;height:68px;object-fit:contain}.psStore{font-size:21px;font-weight:900}.psSub{font-size:10px;font-weight:900;letter-spacing:1.5px;margin-top:4px}.psTx{margin-left:auto;font:700 12px monospace}.psMeta{font-size:10px;color:#555;padding:12px 0}.psTable{width:100%;border-collapse:collapse}.psTable th,.psTable td{padding:8px 7px;border-bottom:1px solid #bbb;text-align:left;font-size:11px;vertical-align:top}.psTable th{font-size:9px;text-transform:uppercase;letter-spacing:.8px}.psMoney{text-align:right!important}.psDetail{font-size:9px;color:#666;margin-top:3px}.psSign{margin-top:28px;font-size:10px}.psLines{display:grid;grid-template-columns:1fr 210px;gap:22px;margin-top:22px}
+ @page{size:letter;margin:0} @media print{body{background:#fff}.sheet{margin:0;width:8.5in;min-height:11in;box-shadow:none}}
+ </style></head><body><div class="sheet">
+ <div class="top"><div class="brand"><img class="logo" src="${LOGO_URI}"><div><div class="storeName">Quicksave Games & Collectibles</div><div class="storeMeta">25435 FM 2978 Rd Ste 108<br>Tomball, TX 77375-2678<br>(832) 422-3025 &#8226; www.quicksavegamesllc.com</div></div></div>
+ <div class="receiptTitle"><div class="eyebrow">Buy &#8226; Sell &#8226; Trade</div><h1>TRADE RECEIPT</h1><div class="tx">${esc(num)}</div></div></div>
+ <div class="rule"></div>
+ <div class="metaGrid"><div class="metaBox"><div class="label">Date & Time</div><div class="value">${esc(stamp)}</div></div><div class="metaBox"><div class="label">Employee</div><div class="value">${esc(emp)}</div></div><div class="metaBox"><div class="label">Payout</div><div class="value">${esc(payoutLabel)}</div></div></div>
+ <div class="section"><div class="sectionTitle">Customer</div><div class="customerGrid"><div><div class="label">Name</div><div class="value">${esc(name)}</div></div><div><div class="label">Phone</div><div class="value">${esc(phone)}</div></div><div><div class="label">ID</div><div class="value">${esc(dl)}</div></div></div></div>
+ <div class="section"><div class="sectionTitle">Items Received</div><div class="itemHead"><span>#</span><span>Item</span><span style="text-align:right">Amount</span></div>${rows||'<div style="padding:14px 0;font-size:11px">No item detail available.</div>'}</div>
+ <div class="summary"><div class="sumRow"><span>Base ${pt==="cash"?"Cash":"Trade"} Total</span><strong>${money(base)}</strong></div>${promoLine}<div class="sumRow grand"><span>TOTAL ${esc(payoutLabel.toUpperCase())}</span><span>${money(total)}</span></div></div>
+ <div class="legal"><strong>Ownership & Transfer Statement</strong><br>By signing below, I affirm that I am the lawful owner of the items listed on this receipt and voluntarily transfer all rights, title, and interest in those items to Quicksave Games & Collectibles LLC. I confirm the items were not stolen or otherwise obtained unlawfully. All trades are final. Valid identification is required for trade transactions.</div>
+ <div class="signatures"><div class="sigLine">Customer Signature</div><div class="sigLine">Date</div></div>
+ <div class="footer"><div class="thanks">Thanks for trading with Quicksave!</div><div class="fine">Quicksave Games & Collectibles LLC &#8226; Transaction ${esc(num)}</div></div>
+ </div>${buildPriceSheetPage(receiptItems,num,emp)}<script>window.onload=()=>setTimeout(()=>window.print(),250)<\/script></body></html>`;
+ const w=window.open("","_blank");
+ if(!w)return alert("Trade completed, but the receipt print window was blocked. Allow pop-ups for this site.");
+ w.document.open();w.document.write(html);w.document.close();
+}
+$("switchEmployeeBtn").onclick=()=>{employee=null;sessionStorage.removeItem("tt_token");sessionStorage.removeItem("tt_refresh");token="";refreshToken="";$("app").classList.add("hidden");$("loginView").classList.remove("hidden");$("loginPin").value="";loadEmployees();};$("loginBtn").onclick=login;$("loginPin").onkeydown=e=>{if(e.key==="Enter")login()};$("logoutBtn").onclick=()=>{sessionStorage.removeItem("tt_token");sessionStorage.removeItem("tt_refresh");location.reload()};
+boot();
+})();
+</script></body></html>
+<style id="v77-remove-pixel-scenes">
+#pixelScene,
+.pixel-scene,
+.login-scene,
+#loginScene,
+.scene-stage,
+.pixel-stage,
+.pixel-world,
+.pixel-wrap {
+  display:none !important;
+}
+.login-shell,
+.login-layout,
+.login-grid {
+  grid-template-columns: minmax(0, 1fr) !important;
+}
+.login-card,
+.login-panel {
+  margin-inline:auto;
+}
+</style>
