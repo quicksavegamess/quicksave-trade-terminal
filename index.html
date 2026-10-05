@@ -187,7 +187,7 @@ font-size:8px;font-weight:900;letter-spacing:.12em;color:#68767d;text-transform:
   <header class="commandHeader">
     <div class="headerBrand">
       <div class="miniBadge"><img id="headerLogo" alt="Quicksave logo"></div>
-      <div><div class="headerKicker">QUICKSAVE GAMES & COLLECTIBLES</div><div class="headerTitle">TRADE TERMINAL <span>V7 · RECEIPT FIX</span></div></div>
+      <div><div class="headerKicker">QUICKSAVE GAMES & COLLECTIBLES</div><div class="headerTitle">TRADE TERMINAL <span>V9 · SOFT LAUNCH</span></div></div>
     </div>
     <div class="headerActions">
       <div class="employeeChip"><span class="onlineDot"></span><div><small>SIGNED IN</small><b id="employeeName">Employee</b></div></div>
@@ -249,7 +249,7 @@ font-size:8px;font-weight:900;letter-spacing:.12em;color:#68767d;text-transform:
         <div class="intakeTools">
           <button id="customItemBtn">+ Custom Item</button>
           <button id="promotionBtn">Promotion</button>
-          <button id="priceSheetBtn">Price Sheet</button>
+          
         </div>
       </section>
 
@@ -522,11 +522,8 @@ function gameDisc(m){const r=rules.games||{};if(m>=+(r.monthly_no_cutoff??20))re
 function gamePay(p,d){const r=rules.games||{};if(p<+(r.buy_price_threshold??2.75))return{trade:+(r.override_trade??.25),cash:+(r.override_cash??.15)};return{trade:+(p*(1-d)).toFixed(2),cash:+(p*(+(r.cash_rate??.60))*(1-d)).toFixed(2)}}
 async function processGameInput(){const q=$("gameSearch").value.trim();if(!q)return;if(/^QS[-_ ]?/i.test(q)){await recallQuote(q.replace(/[_ ]+/g,"-"));return}await searchGame()}
 $("gameSearchBtn").onclick=processGameInput;$("gameSearch").onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();processGameInput()}};
-async function searchGame(){const q=$("gameSearch").value.trim();if(!q)return;const isUPC=/^\d{6,14}$/.test(q);$("gameResults").innerHTML='<div class="notice">Searching PriceCharting...</div>';try{const u=isUPC?`https://www.pricecharting.com/api/product?t=${PC}&upc=${encodeURIComponent(q)}`:`https://www.pricecharting.com/api/products?t=${PC}&q=${encodeURIComponent(q)}`;const r=await fetch(u),d=await r.json();const list=d.products||((d.status==="success")?[d]:[]);if(isUPC&&list.length===1){$("gameResults").innerHTML="";quoteGame(list[0],true);return}$("gameResults").innerHTML=list.slice(0,20).map((x,i)=>`<div class="result gamePick" data-i="${i}"><div><strong>${esc(x["product-name"])}</strong><small>${esc(x["console-name"])} &#8226; Loose buy ${money((+x["retail-loose-buy"]||0)/100)} &#8226; CIB buy ${money((+x["retail-cib-buy"]||0)/100)}</small></div><span>SELECT</span></div>`).join("")||'<div class="notice">No matching games.</div>';$("gameResults").onclick=e=>{const z=e.target.closest(".gamePick");if(z)quoteGame(list[+z.dataset.i],false)}}catch(e){$("gameResults").innerHTML='<div class="notice error">'+esc(e.message)+'</div>'}}
-function quoteGame(x,fromScan=false){const annual=+(x["sales-volume"]||0),monthly=annual>0?annual/12:0,d=gameDisc(monthly);$("gameResults").innerHTML="";$("gameQuote").innerHTML=`<div class="quote"><b>${esc(x["product-name"])}</b> <span class="muted">(${esc(x["console-name"])})</span>${fromScan?'<div class="notice success">UPC validated. Choose condition.</div>':""}<div class="tiny muted">No manual? Select Loose. Sales pace ~${monthly.toFixed(1)}/mo &#8226; velocity adjustment -${Math.round(d*100)}%</div><div class="flex" style="margin-top:9px"><button class="primary" id="addLoose">Loose ${money((+x["retail-loose-buy"]||0)/100)}</button><button class="primary" id="addCib">Complete / CIB ${money((+x["retail-cib-buy"]||0)/100)}</button></div></div>`;function go(kind){const p=(+(x[kind==="CIB"?"retail-cib-buy":"retail-loose-buy"]||0))/100,v=gamePay(p,d);addItem({item_type:"game",title:x["product-name"],details:`${x["console-name"]} • ${kind}${d?` • Velocity -${Math.round(d*100)}%`:""}`,market_value:p,trade_offer:v.trade,cash_offer:v.cash,metadata:{console:x["console-name"],format:kind,sales_volume:annual}});$("gameQuote").innerHTML="";$("gameSearch").value=""}$("addLoose").onclick=()=>go("Loose");$("addCib").onclick=()=>go("CIB");
- const keyHandler=e=>{if($("gameQuote").innerHTML&&document.activeElement?.tagName!=="INPUT"){if(e.key.toLowerCase()==="l"){document.removeEventListener("keydown",keyHandler);go("Loose")}else if(e.key.toLowerCase()==="c"){document.removeEventListener("keydown",keyHandler);go("CIB")}}};document.addEventListener("keydown",keyHandler,{once:false})
-}
-
+async function searchGame(){const q=$("gameSearch").value.trim();if(!q)return;const isUPC=/^\d{6,14}$/.test(q);$("gameResults").innerHTML='<div class="notice">Searching PriceCharting...</div>';try{const u=isUPC?`https://www.pricecharting.com/api/product?t=${PC}&upc=${encodeURIComponent(q)}`:`https://www.pricecharting.com/api/products?t=${PC}&q=${encodeURIComponent(q)}`;const r=await fetch(u),d=await r.json();const list=d.products||((d.status==="success")?[d]:[]);if(isUPC&&list.length===1){$("gameResults").innerHTML="";quoteGame(list[0],true,q);return}$("gameResults").innerHTML=list.slice(0,20).map((x,i)=>`<div class="result gamePick" data-i="${i}"><div><strong>${esc(x["product-name"])}</strong><small>${esc(x["console-name"])} &#8226; Loose buy ${money((+x["retail-loose-buy"]||0)/100)} &#8226; CIB buy ${money((+x["retail-cib-buy"]||0)/100)}</small></div><span>SELECT</span></div>`).join("")||'<div class="notice">No matching games.</div>';$("gameResults").onclick=e=>{const z=e.target.closest(".gamePick");if(z)quoteGame(list[+z.dataset.i],false)}}catch(e){$("gameResults").innerHTML='<div class="notice error">'+esc(e.message)+'</div>'}}
+function quoteGame(x,fromScan=false,scannedUpc=""){const annual=+(x["sales-volume"]||0),monthly=annual>0?annual/12:0,d=gameDisc(monthly);$("gameResults").innerHTML="";const looseBuy=(+x["retail-loose-buy"]||0)/100,cibBuy=(+x["retail-cib-buy"]||0)/100,newBuy=(+x["retail-new-buy"]||0)/100;$("gameQuote").innerHTML=`<div class="quote"><b>${esc(x["product-name"])}</b> <span class="muted">(${esc(x["console-name"])})</span>${fromScan?'<div class="notice success">UPC validated. Choose condition.</div>':""}<div class="tiny muted">Boxed uses Loose buy for payout. New/Sealed uses New buy. Sales pace ~${monthly.toFixed(1)}/mo &#8226; velocity adjustment -${Math.round(d*100)}%</div><div class="flex" style="margin-top:9px;flex-wrap:wrap"><button class="primary" id="addLoose">Loose ${money(looseBuy)}</button><button class="primary" id="addBoxed">Boxed ${money(looseBuy)}</button><button class="primary" id="addCib">Complete / CIB ${money(cibBuy)}</button><button class="primary" id="addNew">New / Sealed ${money(newBuy)}</button></div></div>`;function go(kind){const buyField=kind==="CIB"?"retail-cib-buy":kind==="New"?"retail-new-buy":"retail-loose-buy",p=(+(x[buyField]||0))/100,v=gamePay(p,d);addItem({item_type:"game",title:x["product-name"],details:`${x["console-name"]} • ${kind}${d?` • Velocity -${Math.round(d*100)}%`:""}`,market_value:p,trade_offer:v.trade,cash_offer:v.cash,metadata:{console:x["console-name"],format:kind,sales_volume:annual,scanned_upc:scannedUpc||null,pricecharting_id:x.id||x["product-id"]||x.product_id||null,pricecharting_name:x["product-name"],pricecharting_console:x["console-name"],pc_loose_price:(+x["loose-price"]||0)/100,pc_cib_price:(+x["cib-price"]||0)/100,pc_new_price:(+x["new-price"]||0)/100,pc_gamestop_price:(+x["gamestop-price"]||0)/100,pc_loose_buy:looseBuy,pc_cib_buy:cibBuy,pc_new_buy:newBuy}});$("gameQuote").innerHTML="";$("gameSearch").value=""}$("addLoose").onclick=()=>go("Loose");$("addBoxed").onclick=()=>go("Boxed");$("addCib").onclick=()=>go("CIB");$("addNew").onclick=()=>go("New");}
 function cardPay(m){const r=rules.tcg||{};if(m<=+(r.floor_max_market??1.5))return{trade:+(r.floor_trade??.25),cash:+(r.floor_cash??.20)};if(m<+(r.mid_max_market??10))return{trade:m*+(r.mid_trade_rate??.45),cash:m*+(r.mid_cash_rate??.40)};return{trade:m*+(r.high_trade_rate??.70),cash:m*+(r.high_cash_rate??.60)}}
 function importedCardCashAllowed(x){const g=String(x?.metadata?.game||x?.metadata?.game_label||"").toLowerCase();return !(g.includes("gundam")||g.includes("magic"))}
 function normCardText(v){return String(v||"").toLowerCase().replace(/[^a-z0-9]+/g," ").trim()}
@@ -566,7 +563,7 @@ async function adjustImportedCardCondition(x){
 $("cardSearchBtn").onclick=searchCard;$("cardSearch").onkeydown=e=>{if(e.key==="Enter")searchCard()};
 async function searchCard(){const q=$("cardSearch").value.trim();if(!q)return;$("cardResults").innerHTML='<div class="notice">Searching JustTCG...</div>';try{const r=await fetch("https://api.justtcg.com/v1/cards?q="+encodeURIComponent(q),{headers:{"x-api-key":JT,"accept":"application/json"}}),d=await r.json();const list=Array.isArray(d)?d:(d.data||d.cards||[]);if(list.length===1){$("cardResults").innerHTML="";quoteCard(list[0],true);return}$("cardResults").innerHTML=list.slice(0,25).map((x,i)=>`<div class="result cardPick" data-i="${i}"><div><strong>${esc(x.name||"Unknown")}</strong><small>${esc(x.set_name||x.setName||x.set?.name||"")} &#8226; #${esc(x.number||x.card_number||"")}</small></div><span>SELECT</span></div>`).join("")||'<div class="notice">No matching cards.</div>';$("cardResults").onclick=e=>{const z=e.target.closest(".cardPick");if(z)quoteCard(list[+z.dataset.i],false)}}catch(e){$("cardResults").innerHTML='<div class="notice error">'+esc(e.message)+'</div>'}}
 function variants(c){return c.variants||c.prices||[]}function vprice(v){return +(v.marketPrice??v.market_price??v.price??v.market??0)}
-function quoteCard(c,exactMatch=false){const vs=variants(c);$("cardResults").innerHTML="";const conditions=[...new Set(vs.map(v=>v.condition).filter(Boolean))];const printings=[...new Set(vs.map(v=>v.printing||v.finish).filter(Boolean))];const def=vs.find(x=>/near mint/i.test(x.condition||""))||vs[0]||c;const dc=def.condition||conditions[0]||"Near Mint",dp=def.printing||def.finish||printings[0]||"Normal";$("cardQuote").innerHTML=`<div class="quote"><b>${esc(c.name)}</b>${exactMatch?'<div class="notice success">Exact card match found. Choose condition and printing.</div>':""}<div class="tiny muted">${esc(c.set_name||c.setName||c.set?.name||"")} &#8226; #${esc(c.number||"")}</div><div class="formgrid" style="margin-top:9px"><div><label class="label">CONDITION</label><select id="cardCondition" style="width:100%">${(conditions.length?conditions:[dc]).map(x=>`<option ${x===dc?"selected":""}>${esc(x)}</option>`).join("")}</select></div><div><label class="label">PRINTING</label><select id="cardPrinting" style="width:100%">${(printings.length?printings:[dp]).map(x=>`<option ${x===dp?"selected":""}>${esc(x)}</option>`).join("")}</select></div></div><div id="cardOffer" style="margin-top:8px"></div><button id="addCard" class="primary" style="margin-top:9px">Add Card</button></div>`;function selectedVariant(){const co=$("cardCondition").value,pr=$("cardPrinting").value;return vs.find(v=>(v.condition||"")===co&&(v.printing||v.finish||"Normal")===pr)||vs.find(v=>(v.condition||"")===co)||vs.find(v=>(v.printing||v.finish||"Normal")===pr)||def}function refresh(){const v=selectedVariant(),m=vprice(v)||+(c.marketPrice||c.market_price||0),p=cardPay(m);$("cardOffer").innerHTML=`Market ${money(m)} &#8226; Trade ${money(p.trade)} &#8226; Cash ${money(p.cash)}`;return{v,m,p}}$("cardCondition").onchange=refresh;$("cardPrinting").onchange=refresh;refresh();$("addCard").onclick=()=>{const {v,m,p}=refresh();addItem({item_type:"tcg",title:c.name,details:`${c.set_name||c.setName||c.set?.name||""} • #${c.number||""} • ${$("cardCondition").value} • ${$("cardPrinting").value}`,market_value:m,trade_offer:+p.trade.toFixed(2),cash_offer:+p.cash.toFixed(2),metadata:{card_id:c.id||c.tcgplayerId||c.cardId||null,condition:$("cardCondition").value,printing:$("cardPrinting").value}});$("cardQuote").innerHTML="";$("cardSearch").value=""}}
+function quoteCard(c,exactMatch=false){const vs=variants(c);$("cardResults").innerHTML="";const conditions=[...new Set(vs.map(v=>v.condition).filter(Boolean))];const printings=[...new Set(vs.map(v=>v.printing||v.finish).filter(Boolean))];const def=vs.find(x=>/near mint/i.test(x.condition||""))||vs[0]||c;const dc=def.condition||conditions[0]||"Near Mint",dp=def.printing||def.finish||printings[0]||"Normal";$("cardQuote").innerHTML=`<div class="quote"><b>${esc(c.name)}</b>${exactMatch?'<div class="notice success">Exact card match found. Choose condition and printing.</div>':""}<div class="tiny muted">${esc(c.set_name||c.setName||c.set?.name||"")} &#8226; #${esc(c.number||"")}</div><div class="formgrid" style="margin-top:9px"><div><label class="label">CONDITION</label><select id="cardCondition" style="width:100%">${(conditions.length?conditions:[dc]).map(x=>`<option ${x===dc?"selected":""}>${esc(x)}</option>`).join("")}</select></div><div><label class="label">PRINTING</label><select id="cardPrinting" style="width:100%">${(printings.length?printings:[dp]).map(x=>`<option ${x===dp?"selected":""}>${esc(x)}</option>`).join("")}</select></div></div><div id="cardOffer" style="margin-top:8px"></div><button id="addCard" class="primary" style="margin-top:9px">Add Card</button></div>`;function selectedVariant(){const co=$("cardCondition").value,pr=$("cardPrinting").value;return vs.find(v=>(v.condition||"")===co&&(v.printing||v.finish||"Normal")===pr)||vs.find(v=>(v.condition||"")===co)||vs.find(v=>(v.printing||v.finish||"Normal")===pr)||def}function refresh(){const v=selectedVariant(),m=vprice(v)||+(c.marketPrice||c.market_price||0),p=cardPay(m);$("cardOffer").innerHTML=`Market ${money(m)} &#8226; Trade ${money(p.trade)} &#8226; Cash ${money(p.cash)}`;return{v,m,p}}$("cardCondition").onchange=refresh;$("cardPrinting").onchange=refresh;refresh();$("addCard").onclick=()=>{const {v,m,p}=refresh();addItem({item_type:"tcg",title:c.name,details:`${c.set_name||c.setName||c.set?.name||""} • #${c.number||""} • ${$("cardCondition").value} • ${$("cardPrinting").value}`,market_value:m,trade_offer:+p.trade.toFixed(2),cash_offer:+p.cash.toFixed(2),metadata:{card_id:c.id||c.tcgplayerId||c.cardId||null,game:c.game||c.game_name||c.gameName||c.tcg||c.category||"",set_name:c.set_name||c.setName||c.set?.name||"",card_number:c.number||c.card_number||"",condition:$("cardCondition").value,printing:$("cardPrinting").value}});$("cardQuote").innerHTML="";$("cardSearch").value=""}}
 $("consoleSelect").onchange=()=>{const c=consoles[+$("consoleSelect").value];if(!c){$("consoleAccessories").innerHTML="";$("consoleQuote").innerHTML="";return};$("consoleAccessories").innerHTML=Object.entries(c.accessories||{}).map(([n,v])=>`<label class="acc"><input type="checkbox" class="missingAcc" data-name="${esc(n)}" data-v="${Math.abs(+v)}"> Missing ${esc(n)} (-${money(Math.abs(+v))})</label>`).join("");document.querySelectorAll(".missingAcc").forEach(x=>x.onchange=quoteConsole);quoteConsole()};
 function quoteConsole(){const c=consoles[+$("consoleSelect").value];if(!c)return;let t=+c.base_trade,ca=+c.base_cash,miss=[];document.querySelectorAll(".missingAcc:checked").forEach(x=>{t-=+x.dataset.v;ca-=+x.dataset.v;miss.push(x.dataset.name)});t=Math.max(0,t);ca=Math.max(0,ca);const existing=$("consoleSerial")?.value||"";$("consoleQuote").innerHTML=`<div class="quote"><b>${esc(c.console_name)}</b><div class="tiny muted">${miss.length?"Missing: "+esc(miss.join(", ")):"Listed accessories included"}</div><div style="margin-top:8px"><label class="label">SERIAL NUMBER</label><input id="consoleSerial" style="width:100%;margin-top:4px" value="${esc(existing)}" placeholder="Scan or enter console serial number"></div><div style="margin-top:8px">Trade ${money(t)} &#8226; Cash ${money(ca)}</div><button id="addConsoleTrade" class="primary" style="margin-top:9px">Add Console to Trade</button></div>`;$("addConsoleTrade").onclick=()=>{const serial=$("consoleSerial").value.trim();if(!serial)return alert("Console serial number is required.");addItem({item_type:"console",title:c.console_name,details:(miss.length?"Missing: "+miss.join(", "):"Listed accessories included")+" • Serial: "+serial,trade_offer:t,cash_offer:ca,metadata:{missing:miss,serial_number:serial}});$("consoleSelect").value="";$("consoleAccessories").innerHTML="";$("consoleQuote").innerHTML=""}}
 async function recallQuote(code){
@@ -593,61 +590,55 @@ $("recallQuote").onclick=()=>{show(`<h2>Recall Website Quote</h2><div class="not
 $("promotionBtn").onclick=()=>show(`<h2>Trade Promotion</h2><div class="notice">Promotions increase Trade Credit only. Cash offers are unchanged.</div><div class="formgrid" style="margin-top:12px"><div><label class="label">TYPE</label><select id="promoType" style="width:100%"><option value="percent">Percentage</option><option value="dollar">Dollar Amount</option></select></div><div><label class="label">AMOUNT</label><input id="promoValue" type="number" min="0" step="0.01" value="${promotion.value||""}" placeholder="10 or 25.00"></div></div><div class="flex" style="margin-top:14px"><button id="applyPromo" class="primary">Apply Promotion</button><button id="clearPromo">Clear Promotion</button></div>`);document.addEventListener("click",function promoHandler(e){if(e.target?.id==="applyPromo"){const v=Number($("promoValue").value);if(!isFinite(v)||v<0)return alert("Enter a valid promotion amount.");promotion={type:$("promoType").value,value:v};render();closeModal();document.removeEventListener("click",promoHandler)}else if(e.target?.id==="clearPromo"){promotion={type:null,value:0};render();closeModal();document.removeEventListener("click",promoHandler)}});
 $("payoutType").onchange=()=>{const pt=String($("payoutType").value||"trade").toLowerCase();if(pt==="trade"){$("payoutMethod").value="Trade Credit"}else if($("payoutMethod").value==="Trade Credit"){$("payoutMethod").value="Cash"}render()};
 $("newTradeBtn").onclick=()=>{if(items.length&&!confirm(completedTrade?"Start a new trade? The completed transaction is already saved and can be reopened from Recent Trades.":"Start a new trade and clear the current items?"))return;completedTrade=null;items=[];selected=-1;promotion={type:null,value:0};customer=null;$("clearCustomer").click();render()};
-function priceTag(m){m=Number(m)||0;if(m<=0)return .99;if(m<7){let t=Math.floor(m)+.99;if(t<m)t+=1;return +t.toFixed(2)}if(m<10)return 9.99;let mult=Math.ceil(m/5)*5,t=mult-.01;if(t<m)t+=5;return +t.toFixed(2)}
-function printPriceSheet(){const cards=items.filter(x=>x.item_type==="tcg"&&Number(x.market_value)>=0).sort((a,b)=>a.title.localeCompare(b.title));if(!cards.length)return alert("No TCG card entries are in the current trade.");const rows=cards.map(x=>`<tr><td>${x.qty||1}</td><td>${esc(x.title)}</td><td style="text-align:right">${money(x.market_value||0)}</td><td style="text-align:right">${money(priceTag(x.market_value||0))}</td></tr>`).join("");const w=window.open("","_blank");w.document.write(`<!doctype html><html><head><style>body{font-family:Arial,sans-serif;padding:38px;color:#000}h1{font-size:20px;margin-bottom:4px}.meta{font-size:12px;margin-bottom:22px}table{width:100%;border-collapse:collapse}th,td{padding:7px;border-bottom:1px solid #bbb;text-align:left;font-size:12px}th{font-weight:bold}.sign{margin-top:35px;line-height:2}@media print{button{display:none}}</style>
-<style>
-.pixelLoad{position:fixed;inset:0;z-index:99999;background:#0b0d0c;display:grid;place-items:center;padding:20px}
-.pixelLoad.hidden{display:none!important}
-.pixelStage{width:min(620px,94vw);text-align:center;color:#fff;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
-.pixelScene{height:280px;position:relative;overflow:hidden;border:4px solid #fff;background:linear-gradient(#171c19 0 72%,#101311 72%);box-shadow:8px 8px 0 #000;margin-bottom:18px}
-.pixelWho{font-weight:1000;font-size:clamp(22px,5vw,36px);letter-spacing:2px;text-transform:uppercase}
-.pixelMsg{min-height:42px;margin:10px 0 12px;font-weight:900;font-size:clamp(12px,3vw,16px);letter-spacing:1px}
-.pixelBar{height:22px;border:4px solid #fff;background:#090a09;padding:3px;box-shadow:5px 5px 0 #000}
-.pixelFill{height:100%;width:0;background:repeating-linear-gradient(90deg,#35d04f 0 16px,#35d04f 16px 19px,#0d7e25 19px 22px);transition:width .08s linear}
-.pixelPct{margin-top:8px;font-weight:1000}
-.pxperson{position:absolute;left:50%;bottom:35px;width:54px;height:92px;transform:translateX(-50%);image-rendering:pixelated}
-.pxhead{position:absolute;left:10px;top:0;width:34px;height:34px;background:#e8b98d;box-shadow:-6px 7px 0 #3a261c,6px 7px 0 #3a261c}
-.pxbody{position:absolute;left:5px;top:38px;width:44px;height:42px;background:#242a27;border:5px solid #111}
-.pxleg{position:absolute;bottom:0;width:15px;height:22px;background:#1b1d1c}.pxleg.a{left:8px}.pxleg.b{right:8px}
-.pixelScene .prop{position:absolute;image-rendering:pixelated}
-.scene-taylor .card{width:26px;height:36px;background:#f5df45;border:4px solid #fff;animation:flycard 1s linear infinite}
-.scene-taylor .c1{left:12%;top:30%}.scene-taylor .c2{right:12%;top:18%;animation-delay:.35s}.scene-taylor .cash{width:35px;height:18px;background:#35d04f;border:3px solid #0b5;right:25%;bottom:42px;animation:cash 650ms ease-in-out infinite alternate}
-@keyframes flycard{0%{transform:translateY(80px) rotate(0)}100%{transform:translateY(-100px) rotate(180deg)}}@keyframes cash{to{transform:translate(35px,-45px) rotate(18deg)}}
-.scene-luke .aura{position:absolute;left:50%;bottom:25px;width:145px;height:145px;transform:translateX(-50%);border:8px dashed #f5df45;border-radius:50%;animation:spin .7s linear infinite;box-shadow:0 0 25px #fff}
-.scene-luke .price{right:9%;top:18%;font-size:28px;font-weight:1000;animation:price .45s steps(2) infinite}
-@keyframes spin{to{transform:translateX(-50%) rotate(360deg)}}@keyframes price{50%{transform:scale(1.3)}}
-.scene-anthony .case{width:44px;height:30px;background:#d62929;border:4px solid #fff;top:-35px;animation:bonk 1s ease-in infinite}.scene-anthony .x1{left:28%}.scene-anthony .x2{left:58%;animation-delay:.5s}
-@keyframes bonk{70%{top:95px;transform:rotate(30deg)}100%{top:210px;transform:rotate(90deg)}}
-.scene-beyonca .cat{bottom:32px;font-size:42px;animation:catwalk 1.8s linear infinite}.scene-beyonca .cat2{animation-delay:.8s}
-@keyframes catwalk{from{left:-55px}to{left:105%}}
-.scene-natalie .book,.scene-kayla .book{left:calc(50% + 28px);bottom:65px;width:44px;height:30px;background:#d62929;border:4px solid #fff;transform-origin:left center;animation:page .35s ease-in-out infinite alternate}
-@keyframes page{to{transform:skewY(-12deg) scaleX(.75)}}
-.scene-kayla .dragon{right:13%;bottom:32px;font-size:54px;animation:dragon .8s ease-in-out infinite alternate}.scene-kayla .fire{right:7%;bottom:75px;font-size:32px;animation:fire .35s steps(2) infinite}
-@keyframes dragon{to{transform:translateY(-7px)}}@keyframes fire{50%{transform:scale(1.35) rotate(8deg)}}
-.scene-beyonca:after{content:"SWAMP MODE";position:absolute;right:12px;top:12px;color:#35d04f;font-weight:1000;letter-spacing:2px}
-@media (prefers-reduced-motion:reduce){.pixelScene *{animation-duration:2s!important}.pixelFill{transition:none}}
-</style>
-</head><body><h1>Quicksave Games & Collectibles - TCG Trade-in Price Sheet</h1><div class="meta">Generated: ${new Date().toLocaleString()}<br>Employee (current selection): ${esc(employee?.display_name||"")}</div><table><thead><tr><th>Qty</th><th>Card</th><th style="text-align:right">Market</th><th style="text-align:right">Price Tag</th></tr></thead><tbody>${rows}</tbody></table><div class="sign"><b>Pricing Sign-Off</b><br>Priced By (Name): ________________________________<br>Signature: _______________________________________<br>Date: ____________________ &nbsp;&nbsp; Verified By: ____________________</div><script>window.onload=()=>window.print()<\/script><style id="v79-fast-login">
-#pixelLoad{display:none!important}
-#liveState{transition:opacity .15s ease}
-</style>
-</body></html>`);w.document.close()}
-$("priceSheetBtn").onclick=printPriceSheet;
 async function loadCompletedTrade(txid){
  const [txs,its]=await Promise.all([api("/rest/v1/trade_transactions?select=*&id=eq."+txid+"&limit=1"),api("/rest/v1/trade_transaction_items?select=*&transaction_id=eq."+txid+"&order=id.asc")]);
  if(!txs.length)return alert("Trade not found.");const tx=txs[0];let cust=null;if(tx.customer_id){const cs=await api("/rest/v1/customers?select=*&id=eq."+tx.customer_id+"&limit=1");cust=cs[0]||null}
  lastCompletedTrade={tx,items:its.map(x=>({item_type:x.item_type,title:x.title,details:x.details||"",market_value:x.market_value,cash_offer:+x.cash_offer,trade_offer:+x.trade_offer,qty:+(x.metadata?.qty||1),metadata:x.metadata||{}})),customer:cust};
- show(`<h2>${esc(tx.transaction_number)}</h2><div class="notice">Completed ${new Date(tx.created_at).toLocaleString()} &#8226; ${esc(tx.payout_type)} &#8226; ${money(tx.total)}</div><div class="actionRow" style="margin-top:12px"><button id="reprintReceipt" class="primary">Reprint Receipt + Price Sheet</button><button id="reprintPrice">Price Sheet Only</button><button id="closeCompleted">Close</button></div>`);
+ show(`<h2>${esc(tx.transaction_number)}</h2><div class="notice">Completed ${new Date(tx.created_at).toLocaleString()} &#8226; ${esc(tx.payout_type)} &#8226; ${money(tx.total)}</div><div class="actionRow" style="margin-top:12px"><button id="reprintReceipt" class="primary">Reprint Receipt</button><button id="closeCompleted">Close</button></div>`);
  $("closeCompleted").onclick=hide;$("reprintReceipt").onclick=()=>{const z=lastCompletedTrade,pt=String(z.tx.payout_type||"trade").toLowerCase();hide();openReceiptPrint(z.tx.transaction_number,pt,+z.tx.subtotal||0,+z.tx.bonus||0,+z.tx.total||0,z.items,z.customer,{type:null,value:0},z.tx.payout_method)};
- $("reprintPrice").onclick=()=>{const oldItems=items;items=lastCompletedTrade.items;printPriceSheet();items=oldItems};
 }
 $("recentBtn").onclick=async()=>{const saved=JSON.parse(localStorage.getItem("tt_saved_trades")||"[]"),d=await api("/rest/v1/trade_transactions?select=*&order=created_at.desc&limit=40");show(`<h2>Recent / Saved Trades</h2>${saved.length?'<div class="label" style="margin:10px 0">SAVED FOR LATER</div>'+saved.map((x,i)=>`<div class="result savedPick" data-i="${i}"><div><strong>${esc(x.name)}</strong><small>${new Date(x.saved_at).toLocaleString()} &#8226; ${x.items.length} item(s)</small></div><span class="savedBadge">RESUME</span></div>`).join(""):""}<div class="label" style="margin:14px 0 6px">COMPLETED TRADES</div>${d.map(x=>`<div class="result completedPick" data-id="${x.id}"><div><strong>${esc(x.transaction_number)}</strong><small>${new Date(x.created_at).toLocaleString()} &#8226; ${esc(x.payout_type)} &#8226; ${esc(x.payout_method||"")}</small></div><b>${money(x.total)}</b></div>`).join("")||'<div class="notice">No trades yet.</div>'}`);$("dialog").onclick=e=>{const s=e.target.closest(".savedPick");if(s){const z=saved[+s.dataset.i];if(items.length&&!confirm("Replace the current trade with this saved trade?"))return;items=z.items||[];customer=z.customer||null;promotion=z.promotion||{type:null,value:0};employee=z.employee||employee;if(employee)$("employeeName").textContent=employee.display_name||"Employee";if(customer)setCustomer();else $("clearCustomer").click();saved.splice(+s.dataset.i,1);localStorage.setItem("tt_saved_trades",JSON.stringify(saved));hide();render();return}const c=e.target.closest(".completedPick");if(c){hide();loadCompletedTrade(c.dataset.id)}}};
 $("saveTradeBtn").onclick=()=>{if(!items.length)return alert("There is no trade to save.");const saved=JSON.parse(localStorage.getItem("tt_saved_trades")||"[]"),name=prompt("Name this saved trade:",customer?customerDisplayName(customer):"Saved Trade");if(name===null)return;saved.unshift({id:"S-"+Date.now(),name:name.trim()||"Saved Trade",saved_at:new Date().toISOString(),items:JSON.parse(JSON.stringify(items)),customer:customer?JSON.parse(JSON.stringify(customer)):null,promotion:{...promotion},employee:employee?{...employee}:null});localStorage.setItem("tt_saved_trades",JSON.stringify(saved.slice(0,50)));alert("Trade saved for later.");};
 $("clearTradeBtn").onclick=()=>{if(!items.length&&!customer)return;if(!confirm("CLEAR THIS TRADE?\n\nThis removes the current items and customer. Completed trades are not affected."))return;items=[];selected=-1;promotion={type:null,value:0};customer=null;$("clearCustomer").click();render();};
 
+async function syncCompletedTradeInventory(txid,receiptItems){
+ try{
+  $("statusBar").textContent="TRADE SAVED | FREEZING SQUARE INVENTORY PLAN...";
+  const sim=await api("/functions/v1/trade-inventory-simulator",{
+   method:"POST",
+   body:JSON.stringify({simulation_id:"TX-"+txid,items:(receiptItems||[]).map(x=>({...x,qty:x.qty||1,metadata:{...(x.metadata||{}),qty:x.qty||1}}))})
+  });
+  if(!Array.isArray(sim?.results)||sim.results.length!==(receiptItems||[]).length)throw Error("Inventory simulator returned an incomplete plan.");
+  await api("/functions/v1/trade-inventory-freeze",{
+   method:"POST",
+   body:JSON.stringify({transaction_id:txid,results:sim.results})
+  });
+  $("statusBar").textContent="TRADE SAVED | SYNCING INVENTORY TO SQUARE...";
+  const run=await api("/functions/v1/trade-inventory-processor",{
+   method:"POST",
+   body:JSON.stringify({transaction_id:txid})
+  });
+  const s=run?.summary||{};
+  if(Number(s.failed||0)>0){
+   $("statusBar").textContent=`TRADE COMPLETE | SQUARE: ${s.completed||0} COMPLETE · ${s.skipped||0} SKIPPED · ${s.failed||0} NEED REVIEW`;
+   console.error("Trade inventory sync needs review",run);
+  }else{
+   $("statusBar").textContent=`TRADE COMPLETE | SQUARE: ${s.completed||0} SYNCED · ${s.skipped||0} SKIPPED`;
+  }
+  return run;
+ }catch(e){
+  console.error("Post-trade inventory sync failed",e);
+  $("statusBar").textContent="TRADE COMPLETE | SQUARE INVENTORY SYNC NEEDS REVIEW: "+e.message;
+  return {ok:false,error:e.message};
+ }
+}
+
 $("completeBtn").onclick=async()=>{
  if(!ensureEmployee())return;
  if(!items.length)return alert("Add at least one item.");
+ if(!completedTrade&&!customer&&!confirm("Complete this trade without a selected customer?"))return;
+ const receiptWindow=window.open("","_blank");
+ if(receiptWindow){receiptWindow.document.write('<!doctype html><title>Preparing Receipt</title><body style="font-family:Arial;padding:30px">Preparing receipt...</body>');receiptWindow.document.close()}
  const pt=String($("payoutType").value||"trade").toLowerCase();
  if(pt==="trade")$("payoutMethod").value="Trade Credit";
  const payoutMethod=pt==="cash"?$("payoutMethod").value:"Trade Credit",
@@ -675,10 +666,9 @@ $("completeBtn").onclick=async()=>{
      completedTrade={...completedTrade,payout_type:pt,payout_method:payoutMethod,subtotal:+base.toFixed(2),bonus:+bonus.toFixed(2),total:+total.toFixed(2)};
      lastCompletedTrade={tx:{...completedTrade},items:receiptItems,customer:receiptCustomer};
      render();
-     openReceiptPrint(num,pt,base,bonus,total,receiptItems,receiptCustomer,{...promotion},payoutMethod);
+     openReceiptPrint(num,pt,base,bonus,total,receiptItems,receiptCustomer,{...promotion},payoutMethod,receiptWindow);
      return;
    }
-   if(!customer&&!confirm("Complete this trade without a selected customer?"))return;
    const num="TT-"+Date.now().toString().slice(-10);
    const tx=await api("/rest/v1/trade_transactions",{
      method:"POST",headers:{Prefer:"return=representation"},
@@ -696,23 +686,13 @@ $("completeBtn").onclick=async()=>{
    completedTrade={id:txid,transaction_number:num,payout_type:pt,payout_method:payoutMethod,subtotal:+base.toFixed(2),bonus:+bonus.toFixed(2),total:+total.toFixed(2)};
    lastCompletedTrade={tx:{...completedTrade},items:receiptItems,customer:receiptCustomer};
    render();
-   openReceiptPrint(num,pt,base,bonus,total,receiptItems,receiptCustomer,{...promotion},payoutMethod);
- }catch(e){alert((completedTrade?"Could not update payout: ":"Could not complete trade: ")+e.message)}
+   await syncCompletedTradeInventory(txid,receiptItems);
+   openReceiptPrint(num,pt,base,bonus,total,receiptItems,receiptCustomer,{...promotion},payoutMethod,receiptWindow);
+ }catch(e){try{if(receiptWindow&&!receiptWindow.closed)receiptWindow.close()}catch{}alert((completedTrade?"Could not update payout: ":"Could not complete trade: ")+e.message)}
 };
-function buildPriceSheetPage(receiptItems,num,employeeName){
- const cards=(receiptItems||[]).filter(x=>x.item_type==="tcg"&&Number(x.market_value)>=0).sort((a,b)=>String(a.title||"").localeCompare(String(b.title||"")));
- if(!cards.length)return "";
- const rows=cards.map(x=>`<tr><td>${x.qty||1}</td><td><strong>${esc(x.title)}</strong>${x.details?`<div class="psDetail">${esc(cleanDetails(x.details))}</div>`:""}</td><td class="psMoney">${money(x.market_value||0)}</td><td class="psMoney">${money(priceTag(x.market_value||0))}</td></tr>`).join("");
- return `<section class="priceSheetPage">
-   <div class="psTop"><img src="${LOGO_URI}" class="psLogo"><div><div class="psStore">Quicksave Games & Collectibles</div><div class="psSub">TCG TRADE-IN PRICE SHEET</div></div><div class="psTx">${esc(num)}</div></div>
-   <div class="psMeta">Generated: ${esc(new Date().toLocaleString())} &nbsp; &#8226; &nbsp; Employee: ${esc(employeeName||"&#8212;")}</div>
-   <table class="psTable"><thead><tr><th>Qty</th><th>Card</th><th class="psMoney">Market</th><th class="psMoney">Price Tag</th></tr></thead><tbody>${rows}</tbody></table>
-   <div class="psSign"><strong>Pricing Sign-Off</strong><div class="psLines"><span>Priced By: ________________________________</span><span>Date: ____________________</span></div><div class="psLines"><span>Signature: __________________________________</span><span>Verified By: ____________________</span></div></div>
- </section>`;
-}
-function openReceiptPrint(num,pt,base,bonus,total,receiptItems,receiptCustomer,receiptPromo,payoutMethodOverride=null){
+function openReceiptPrint(num,pt,base,bonus,total,receiptItems,receiptCustomer,receiptPromo,payoutMethodOverride=null,targetWindow=null){
  const now=new Date(),
- stamp=now.toLocaleDateString(undefined,{year:"numeric",month:"short",day:"numeric"})+" &#8226; "+now.toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"}),
+ stamp=now.toLocaleDateString(undefined,{year:"numeric",month:"short",day:"numeric"})+" • "+now.toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"}),
  payoutLabel=pt==="cash"?(payoutMethodOverride||$("payoutMethod").value||"Cash"):"Trade Credit",
  name=receiptCustomer?customerDisplayName(receiptCustomer):"Walk-in Customer",
  phone=receiptCustomer?.phone||"&#8212;",
@@ -747,8 +727,8 @@ function openReceiptPrint(num,pt,base,bonus,total,receiptItems,receiptCustomer,r
  .legal{margin-top:18px;border:1px solid #bbb;border-radius:7px;padding:11px 13px;font-size:9.5px;line-height:1.4;color:#333;break-inside:avoid;page-break-inside:avoid}
  .signatures{display:grid;grid-template-columns:1fr 150px;gap:24px;margin-top:28px;break-inside:avoid;page-break-inside:avoid}.sigLine{border-top:1px solid #111;padding-top:6px;font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.8px}
  .footer{text-align:center;margin-top:18px;border-top:1px solid #ccc;padding-top:10px;break-inside:avoid;page-break-inside:avoid}.thanks{font-size:13px;font-weight:900}.fine{font-size:9px;color:#666;margin-top:4px}
- .priceSheetPage{width:8.5in;min-height:11in;margin:0 auto;background:#fff;padding:.42in .5in .38in;page-break-before:always}.psTop{display:flex;align-items:center;gap:14px;border-bottom:4px solid #111;padding-bottom:14px}.psLogo{width:68px;height:68px;object-fit:contain}.psStore{font-size:21px;font-weight:900}.psSub{font-size:10px;font-weight:900;letter-spacing:1.5px;margin-top:4px}.psTx{margin-left:auto;font:700 12px monospace}.psMeta{font-size:10px;color:#555;padding:12px 0}.psTable{width:100%;border-collapse:collapse}.psTable th,.psTable td{padding:8px 7px;border-bottom:1px solid #bbb;text-align:left;font-size:11px;vertical-align:top;overflow-wrap:anywhere;word-break:break-word}.psTable tr{break-inside:avoid;page-break-inside:avoid}.psTable th{font-size:9px;text-transform:uppercase;letter-spacing:.8px}.psMoney{text-align:right!important}.psDetail{font-size:9px;color:#666;margin-top:3px}.psSign{margin-top:28px;font-size:10px}.psLines{display:grid;grid-template-columns:1fr 210px;gap:22px;margin-top:22px}
- @page{size:letter;margin:0} @media print{body{background:#fff}.sheet,.priceSheetPage{margin:0;width:8.5in;box-shadow:none}.itemRow,.summary,.legal,.signatures,.footer,.psTable tr{break-inside:avoid!important;page-break-inside:avoid!important}}
+
+ @page{size:letter;margin:0} @media print{body{background:#fff}.sheet{margin:0;width:8.5in;box-shadow:none}.itemRow,.summary,.legal,.signatures,.footer{break-inside:avoid!important;page-break-inside:avoid!important}}
  </style></head><body><div class="sheet">
  <div class="top"><div class="brand"><img class="logo" src="${LOGO_URI}"><div><div class="storeName">Quicksave Games & Collectibles</div><div class="storeMeta">25435 FM 2978 Rd Ste 108<br>Tomball, TX 77375-2678<br>(832) 422-3025 &#8226; www.quicksavegamesllc.com</div></div></div>
  <div class="receiptTitle"><div class="eyebrow">Buy &#8226; Sell &#8226; Trade</div><h1>TRADE RECEIPT</h1><div class="tx">${esc(num)}</div></div></div>
@@ -760,9 +740,9 @@ function openReceiptPrint(num,pt,base,bonus,total,receiptItems,receiptCustomer,r
  <div class="legal"><strong>Ownership & Transfer Statement</strong><br>By signing below, I affirm that I am the lawful owner of the items listed on this receipt and voluntarily transfer all rights, title, and interest in those items to Quicksave Games & Collectibles LLC. I confirm the items were not stolen or otherwise obtained unlawfully. All trades are final. Valid identification is required for trade transactions.</div>
  <div class="signatures"><div class="sigLine">Customer Signature</div><div class="sigLine">Date</div></div>
  <div class="footer"><div class="thanks">Thanks for trading with Quicksave!</div><div class="fine">Quicksave Games & Collectibles LLC &#8226; Transaction ${esc(num)}</div></div>
- </div>${buildPriceSheetPage(receiptItems,num,emp)}<script>window.onload=()=>setTimeout(()=>window.print(),250)<\/script></body></html>`;
- const w=window.open("","_blank");
- if(!w)return alert("Trade completed, but the receipt print window was blocked. Allow pop-ups for this site.");
+ </div><script>window.onload=()=>setTimeout(()=>window.print(),250)<\/script></body></html>`;
+ const w=targetWindow||window.open("","_blank");
+ if(!w)return alert("Receipt window could not open. Use Recent / Saved to reprint the receipt.");
  w.document.open();w.document.write(html);w.document.close();
 }
 $("switchEmployeeBtn").onclick=()=>{employee=null;sessionStorage.removeItem("tt_token");sessionStorage.removeItem("tt_refresh");token="";refreshToken="";$("app").classList.add("hidden");$("loginView").classList.remove("hidden");$("loginPin").value="";loadEmployees();};$("loginBtn").onclick=login;$("loginPin").onkeydown=e=>{if(e.key==="Enter")login()};$("logoutBtn").onclick=()=>{sessionStorage.removeItem("tt_token");sessionStorage.removeItem("tt_refresh");location.reload()};
