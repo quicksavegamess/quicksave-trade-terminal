@@ -187,7 +187,7 @@ font-size:8px;font-weight:900;letter-spacing:.12em;color:#68767d;text-transform:
   <header class="commandHeader">
     <div class="headerBrand">
       <div class="miniBadge"><img id="headerLogo" alt="Quicksave logo"></div>
-      <div><div class="headerKicker">QUICKSAVE GAMES & COLLECTIBLES</div><div class="headerTitle">TRADE TERMINAL <span>V9 · ROLLOUT</span></div></div>
+      <div><div class="headerKicker">QUICKSAVE GAMES & COLLECTIBLES</div><div class="headerTitle">TRADE TERMINAL <span>V9 · SOFT LAUNCH</span></div></div>
     </div>
     <div class="headerActions">
       <div class="employeeChip"><span class="onlineDot"></span><div><small>SIGNED IN</small><b id="employeeName">Employee</b></div></div>
@@ -594,54 +594,47 @@ async function loadCompletedTrade(txid){
  const [txs,its]=await Promise.all([api("/rest/v1/trade_transactions?select=*&id=eq."+txid+"&limit=1"),api("/rest/v1/trade_transaction_items?select=*&transaction_id=eq."+txid+"&order=id.asc")]);
  if(!txs.length)return alert("Trade not found.");const tx=txs[0];let cust=null;if(tx.customer_id){const cs=await api("/rest/v1/customers?select=*&id=eq."+tx.customer_id+"&limit=1");cust=cs[0]||null}
  lastCompletedTrade={tx,items:its.map(x=>({item_type:x.item_type,title:x.title,details:x.details||"",market_value:x.market_value,cash_offer:+x.cash_offer,trade_offer:+x.trade_offer,qty:+(x.metadata?.qty||1),metadata:x.metadata||{}})),customer:cust};
- show(`<h2>${esc(tx.transaction_number)}</h2><div class="notice">Completed ${new Date(tx.created_at).toLocaleString()} &#8226; ${esc(tx.payout_type)} &#8226; ${money(tx.total)}</div><div class="actionRow" style="margin-top:12px"><button id="reprintReceipt" class="primary">Reprint Receipt</button><button id="retryInventory">Retry Inventory Sync</button><button id="closeCompleted">Close</button></div><div id="retryInventoryStatus" class="notice hidden" style="margin-top:12px"></div>`);
- $("closeCompleted").onclick=hide;$("reprintReceipt").onclick=()=>{const z=lastCompletedTrade,pt=String(z.tx.payout_type||"trade").toLowerCase();hide();openReceiptPrint(z.tx.transaction_number,pt,+z.tx.subtotal||0,+z.tx.bonus||0,+z.tx.total||0,z.items,z.customer,{type:null,value:0},z.tx.payout_method)};
- $("retryInventory").onclick=async()=>{
-  const b=$("retryInventory"),st=$("retryInventoryStatus");
-  if(!confirm("Retry the inventory sync for "+tx.transaction_number+"?\n\nThis does NOT change the customer payout or create a new trade. It only retries unfinished inventory jobs."))return;
-  b.disabled=true;b.textContent="Retrying Inventory...";st.classList.remove("hidden");st.textContent="Sending unfinished inventory jobs to Square...";
-  try{
-   const run=await api("/functions/v1/trade-inventory-processor",{method:"POST",body:JSON.stringify({transaction_id:tx.id})});
-   const sm=run?.summary||{};
-   st.textContent=`Inventory retry finished: ${sm.completed||0} completed, ${sm.skipped||0} skipped, ${sm.failed||0} need review.`;
-   if(Number(sm.failed||0)>0){b.disabled=false;b.textContent="Retry Inventory Sync";console.error("Inventory retry needs review",run)}else{b.textContent="Inventory Synced"}
-  }catch(e){st.textContent="Inventory retry failed: "+e.message;b.disabled=false;b.textContent="Retry Inventory Sync";console.error(e)}
- };
+ show(`<h2>${esc(tx.transaction_number)}</h2><div class="notice">Completed ${new Date(tx.created_at).toLocaleString()} &#8226; ${esc(tx.payout_type)} &#8226; ${money(tx.total)}</div><div class="actionRow" style="margin-top:12px"><button id="reprintReceipt" class="primary">Reprint Receipt</button><button id="recoverInventory">Recover / Retry Inventory</button><button id="closeCompleted">Close</button></div>`);
+ $("closeCompleted").onclick=hide;$("recoverInventory").onclick=async()=>{const btn=$("recoverInventory");btn.disabled=true;btn.textContent="Recovering inventory...";try{const r=await syncCompletedTradeInventory(Number(txid));alert(r.ok?`Inventory sync finished: ${r.completed} completed, ${r.skipped} skipped, ${r.failed} need review.`:`Inventory recovery interrupted: ${r.error||r.failed+" jobs need review"}. Retry is safe; completed jobs will not run again.`)}finally{btn.disabled=false;btn.textContent="Recover / Retry Inventory"}};$("reprintReceipt").onclick=()=>{const z=lastCompletedTrade,pt=String(z.tx.payout_type||"trade").toLowerCase();hide();openReceiptPrint(z.tx.transaction_number,pt,+z.tx.subtotal||0,+z.tx.bonus||0,+z.tx.total||0,z.items,z.customer,{type:null,value:0},z.tx.payout_method)};
 }
 $("recentBtn").onclick=async()=>{const saved=JSON.parse(localStorage.getItem("tt_saved_trades")||"[]"),d=await api("/rest/v1/trade_transactions?select=*&order=created_at.desc&limit=40");show(`<h2>Recent / Saved Trades</h2>${saved.length?'<div class="label" style="margin:10px 0">SAVED FOR LATER</div>'+saved.map((x,i)=>`<div class="result savedPick" data-i="${i}"><div><strong>${esc(x.name)}</strong><small>${new Date(x.saved_at).toLocaleString()} &#8226; ${x.items.length} item(s)</small></div><span class="savedBadge">RESUME</span></div>`).join(""):""}<div class="label" style="margin:14px 0 6px">COMPLETED TRADES</div>${d.map(x=>`<div class="result completedPick" data-id="${x.id}"><div><strong>${esc(x.transaction_number)}</strong><small>${new Date(x.created_at).toLocaleString()} &#8226; ${esc(x.payout_type)} &#8226; ${esc(x.payout_method||"")}</small></div><b>${money(x.total)}</b></div>`).join("")||'<div class="notice">No trades yet.</div>'}`);$("dialog").onclick=e=>{const s=e.target.closest(".savedPick");if(s){const z=saved[+s.dataset.i];if(items.length&&!confirm("Replace the current trade with this saved trade?"))return;items=z.items||[];customer=z.customer||null;promotion=z.promotion||{type:null,value:0};employee=z.employee||employee;if(employee)$("employeeName").textContent=employee.display_name||"Employee";if(customer)setCustomer();else $("clearCustomer").click();saved.splice(+s.dataset.i,1);localStorage.setItem("tt_saved_trades",JSON.stringify(saved));hide();render();return}const c=e.target.closest(".completedPick");if(c){hide();loadCompletedTrade(c.dataset.id)}}};
 $("saveTradeBtn").onclick=()=>{if(!items.length)return alert("There is no trade to save.");const saved=JSON.parse(localStorage.getItem("tt_saved_trades")||"[]"),name=prompt("Name this saved trade:",customer?customerDisplayName(customer):"Saved Trade");if(name===null)return;saved.unshift({id:"S-"+Date.now(),name:name.trim()||"Saved Trade",saved_at:new Date().toISOString(),items:JSON.parse(JSON.stringify(items)),customer:customer?JSON.parse(JSON.stringify(customer)):null,promotion:{...promotion},employee:employee?{...employee}:null});localStorage.setItem("tt_saved_trades",JSON.stringify(saved.slice(0,50)));alert("Trade saved for later.");};
 $("clearTradeBtn").onclick=()=>{if(!items.length&&!customer)return;if(!confirm("CLEAR THIS TRADE?\n\nThis removes the current items and customer. Completed trades are not affected."))return;items=[];selected=-1;promotion={type:null,value:0};customer=null;$("clearCustomer").click();render();};
 
 async function syncCompletedTradeInventory(txid,receiptItems){
+ const batchSize=6;
  try{
-  $("statusBar").textContent="TRADE SAVED | FREEZING SQUARE INVENTORY PLAN...";
-  const sim=await api("/functions/v1/trade-inventory-simulator",{
-   method:"POST",
-   body:JSON.stringify({simulation_id:"TX-"+txid,items:(receiptItems||[]).map(x=>({...x,qty:x.qty||1,metadata:{...(x.metadata||{}),qty:x.qty||1}}))})
-  });
-  if(!Array.isArray(sim?.results)||sim.results.length!==(receiptItems||[]).length)throw Error("Inventory simulator returned an incomplete plan.");
-  await api("/functions/v1/trade-inventory-freeze",{
-   method:"POST",
-   body:JSON.stringify({transaction_id:txid,results:sim.results})
-  });
-  $("statusBar").textContent="TRADE SAVED | SYNCING INVENTORY TO SQUARE...";
-  const run=await api("/functions/v1/trade-inventory-processor",{
-   method:"POST",
-   body:JSON.stringify({transaction_id:txid})
-  });
-  const s=run?.summary||{};
-  if(Number(s.failed||0)>0){
-   $("statusBar").textContent=`TRADE COMPLETE | SQUARE: ${s.completed||0} COMPLETE · ${s.skipped||0} SKIPPED · ${s.failed||0} NEED REVIEW`;
-   console.error("Trade inventory sync needs review",run);
-  }else{
-   $("statusBar").textContent=`TRADE COMPLETE | SQUARE: ${s.completed||0} SYNCED · ${s.skipped||0} SKIPPED`;
+  const saved=await api("/rest/v1/trade_transaction_items?select=*&transaction_id=eq."+txid+"&order=id.asc");
+  if(!saved.length)throw Error("No saved trade items found.");
+  const jobs=await api("/rest/v1/trade_inventory_processing?select=id,trade_item_id,status&transaction_id=eq."+txid);
+  const known=new Set(jobs.map(j=>Number(j.trade_item_id)));
+  let created=0,completed=0,skipped=0,failed=0;
+  for(let start=0;start<saved.length;start+=batchSize){
+   const chunk=saved.slice(start,start+batchSize);
+   const missing=chunk.filter(x=>!known.has(Number(x.id)));
+   if(missing.length){
+    $("statusBar").textContent=`TRADE SAVED | PLANNING CARDS ${start+1}–${Math.min(start+batchSize,saved.length)} OF ${saved.length}`;
+    const inputs=chunk.map(x=>({item_type:x.item_type,title:x.title,details:x.details,market_value:x.market_value,qty:Number(x.metadata?.qty||1),metadata:x.metadata||{}}));
+    const sim=await api("/functions/v1/trade-inventory-simulator",{method:"POST",body:JSON.stringify({simulation_id:"TX-"+txid+"-"+start,items:inputs})});
+    if(!Array.isArray(sim?.results)||sim.results.length!==chunk.length)throw Error("Incomplete inventory plan at entry "+(start+1));
+    const freeze=await api("/functions/v1/trade-inventory-freeze",{method:"POST",body:JSON.stringify({transaction_id:txid,offset:start,results:sim.results})});
+    created+=Number(freeze.frozen||0);
+   }
+   const batchJobs=await api("/rest/v1/trade_inventory_processing?select=id,status,trade_item_id&transaction_id=eq."+txid+"&trade_item_id=in.("+chunk.map(x=>x.id).join(",")+")");
+   const pending=batchJobs.filter(x=>!["completed","skipped"].includes(x.status));
+   if(pending.length){
+    $("statusBar").textContent=`TRADE SAVED | SENDING CARDS ${start+1}–${Math.min(start+batchSize,saved.length)} OF ${saved.length}`;
+    const run=await api("/functions/v1/trade-inventory-processor",{method:"POST",body:JSON.stringify({transaction_id:txid,job_ids:pending.map(x=>x.id)})});
+    if(run?.error)throw Error(run.error);
+   }
+   const statuses=await api("/rest/v1/trade_inventory_processing?select=status&transaction_id=eq."+txid+"&trade_item_id=in.("+chunk.map(x=>x.id).join(",")+")");
+   completed+=statuses.filter(x=>x.status==="completed").length;
+   skipped+=statuses.filter(x=>x.status==="skipped").length;
+   failed+=statuses.filter(x=>!["completed","skipped"].includes(x.status)).length;
   }
-  return run;
- }catch(e){
-  console.error("Post-trade inventory sync failed",e);
-  $("statusBar").textContent="TRADE COMPLETE | SQUARE INVENTORY SYNC NEEDS REVIEW: "+e.message;
-  return {ok:false,error:e.message};
- }
+  $("statusBar").textContent=`TRADE COMPLETE | SQUARE: ${completed} SYNCED · ${skipped} SKIPPED · ${failed} NEED REVIEW`;
+  return {ok:failed===0,created,completed,skipped,failed};
+ }catch(e){console.error("Post-trade inventory sync failed",e);$("statusBar").textContent="TRADE COMPLETE | INVENTORY SYNC INTERRUPTED: "+e.message;return {ok:false,error:e.message}}
 }
 
 $("completeBtn").onclick=async()=>{
@@ -703,7 +696,7 @@ $("completeBtn").onclick=async()=>{
 };
 function openReceiptPrint(num,pt,base,bonus,total,receiptItems,receiptCustomer,receiptPromo,payoutMethodOverride=null,targetWindow=null){
  const now=new Date(),
- stamp=now.toLocaleDateString(undefined,{year:"numeric",month:"short",day:"numeric"})+" &#8226; "+now.toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"}),
+ stamp=now.toLocaleDateString(undefined,{year:"numeric",month:"short",day:"numeric"})+" • "+now.toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"}),
  payoutLabel=pt==="cash"?(payoutMethodOverride||$("payoutMethod").value||"Cash"):"Trade Credit",
  name=receiptCustomer?customerDisplayName(receiptCustomer):"Walk-in Customer",
  phone=receiptCustomer?.phone||"&#8212;",
@@ -738,8 +731,8 @@ function openReceiptPrint(num,pt,base,bonus,total,receiptItems,receiptCustomer,r
  .legal{margin-top:18px;border:1px solid #bbb;border-radius:7px;padding:11px 13px;font-size:9.5px;line-height:1.4;color:#333;break-inside:avoid;page-break-inside:avoid}
  .signatures{display:grid;grid-template-columns:1fr 150px;gap:24px;margin-top:28px;break-inside:avoid;page-break-inside:avoid}.sigLine{border-top:1px solid #111;padding-top:6px;font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.8px}
  .footer{text-align:center;margin-top:18px;border-top:1px solid #ccc;padding-top:10px;break-inside:avoid;page-break-inside:avoid}.thanks{font-size:13px;font-weight:900}.fine{font-size:9px;color:#666;margin-top:4px}
- .priceSheetPage{width:8.5in;min-height:11in;margin:0 auto;background:#fff;padding:.42in .5in .38in;page-break-before:always}.psTop{display:flex;align-items:center;gap:14px;border-bottom:4px solid #111;padding-bottom:14px}.psLogo{width:68px;height:68px;object-fit:contain}.psStore{font-size:21px;font-weight:900}.psSub{font-size:10px;font-weight:900;letter-spacing:1.5px;margin-top:4px}.psTx{margin-left:auto;font:700 12px monospace}.psMeta{font-size:10px;color:#555;padding:12px 0}.psTable{width:100%;border-collapse:collapse}.psTable th,.psTable td{padding:8px 7px;border-bottom:1px solid #bbb;text-align:left;font-size:11px;vertical-align:top;overflow-wrap:anywhere;word-break:break-word}.psTable tr{break-inside:avoid;page-break-inside:avoid}.psTable th{font-size:9px;text-transform:uppercase;letter-spacing:.8px}.psMoney{text-align:right!important}.psDetail{font-size:9px;color:#666;margin-top:3px}.psSign{margin-top:28px;font-size:10px}.psLines{display:grid;grid-template-columns:1fr 210px;gap:22px;margin-top:22px}
- @page{size:letter;margin:0} @media print{body{background:#fff}.sheet,.priceSheetPage{margin:0;width:8.5in;box-shadow:none}.itemRow,.summary,.legal,.signatures,.footer,.psTable tr{break-inside:avoid!important;page-break-inside:avoid!important}}
+
+ @page{size:letter;margin:0} @media print{body{background:#fff}.sheet{margin:0;width:8.5in;box-shadow:none}.itemRow,.summary,.legal,.signatures,.footer{break-inside:avoid!important;page-break-inside:avoid!important}}
  </style></head><body><div class="sheet">
  <div class="top"><div class="brand"><img class="logo" src="${LOGO_URI}"><div><div class="storeName">Quicksave Games & Collectibles</div><div class="storeMeta">25435 FM 2978 Rd Ste 108<br>Tomball, TX 77375-2678<br>(832) 422-3025 &#8226; www.quicksavegamesllc.com</div></div></div>
  <div class="receiptTitle"><div class="eyebrow">Buy &#8226; Sell &#8226; Trade</div><h1>TRADE RECEIPT</h1><div class="tx">${esc(num)}</div></div></div>
