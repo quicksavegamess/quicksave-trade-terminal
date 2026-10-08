@@ -606,7 +606,7 @@ async function syncCompletedTradeInventory(txid,receiptItems){
  try{
   const saved=await api("/rest/v1/trade_transaction_items?select=*&transaction_id=eq."+txid+"&order=id.asc");
   if(!saved.length)throw Error("No saved trade items found.");
-  const jobs=await api("/rest/v1/trade_inventory_processing?select=id,trade_item_id,status&transaction_id=eq."+txid);
+  const jobs=(await api("/functions/v1/trade-inventory-jobs",{method:"POST",body:JSON.stringify({transaction_id:txid})})).jobs;
   const known=new Set(jobs.map(j=>Number(j.trade_item_id)));
   let created=0,completed=0,skipped=0,failed=0;
   for(let start=0;start<saved.length;start+=batchSize){
@@ -620,14 +620,14 @@ async function syncCompletedTradeInventory(txid,receiptItems){
     const freeze=await api("/functions/v1/trade-inventory-freeze",{method:"POST",body:JSON.stringify({transaction_id:txid,offset:start,results:sim.results})});
     created+=Number(freeze.frozen||0);
    }
-   const batchJobs=await api("/rest/v1/trade_inventory_processing?select=id,status,trade_item_id&transaction_id=eq."+txid+"&trade_item_id=in.("+chunk.map(x=>x.id).join(",")+")");
+   const batchJobs=(await api("/functions/v1/trade-inventory-jobs",{method:"POST",body:JSON.stringify({transaction_id:txid})})).jobs.filter(x=>chunk.some(c=>Number(c.id)===Number(x.trade_item_id)));
    const pending=batchJobs.filter(x=>!["completed","skipped"].includes(x.status));
    if(pending.length){
     $("statusBar").textContent=`TRADE SAVED | SENDING CARDS ${start+1}–${Math.min(start+batchSize,saved.length)} OF ${saved.length}`;
     const run=await api("/functions/v1/trade-inventory-processor",{method:"POST",body:JSON.stringify({transaction_id:txid,job_ids:pending.map(x=>x.id)})});
     if(run?.error)throw Error(run.error);
    }
-   const statuses=await api("/rest/v1/trade_inventory_processing?select=status&transaction_id=eq."+txid+"&trade_item_id=in.("+chunk.map(x=>x.id).join(",")+")");
+   const statuses=(await api("/functions/v1/trade-inventory-jobs",{method:"POST",body:JSON.stringify({transaction_id:txid})})).jobs.filter(x=>chunk.some(c=>Number(c.id)===Number(x.trade_item_id)));
    completed+=statuses.filter(x=>x.status==="completed").length;
    skipped+=statuses.filter(x=>x.status==="skipped").length;
    failed+=statuses.filter(x=>!["completed","skipped"].includes(x.status)).length;
