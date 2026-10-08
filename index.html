@@ -595,14 +595,14 @@ async function loadCompletedTrade(txid){
  if(!txs.length)return alert("Trade not found.");const tx=txs[0];let cust=null;if(tx.customer_id){const cs=await api("/rest/v1/customers?select=*&id=eq."+tx.customer_id+"&limit=1");cust=cs[0]||null}
  lastCompletedTrade={tx,items:its.map(x=>({item_type:x.item_type,title:x.title,details:x.details||"",market_value:x.market_value,cash_offer:+x.cash_offer,trade_offer:+x.trade_offer,qty:+(x.metadata?.qty||1),metadata:x.metadata||{}})),customer:cust};
  show(`<h2>${esc(tx.transaction_number)}</h2><div class="notice">Completed ${new Date(tx.created_at).toLocaleString()} &#8226; ${esc(tx.payout_type)} &#8226; ${money(tx.total)}</div><div class="actionRow" style="margin-top:12px"><button id="reprintReceipt" class="primary">Reprint Receipt</button><button id="recoverInventory">Recover / Retry Inventory</button><button id="closeCompleted">Close</button></div>`);
- $("closeCompleted").onclick=hide;$("recoverInventory").onclick=async()=>{const btn=$("recoverInventory");btn.disabled=true;btn.textContent="Recovering inventory...";try{const r=await syncCompletedTradeInventory(Number(txid));alert(r.ok?`Inventory sync finished: ${r.completed} completed, ${r.skipped} skipped, ${r.failed} need review.`:`Inventory recovery interrupted: ${r.error||r.failed+" jobs need review"}. Retry is safe; completed jobs will not run again.`)}finally{btn.disabled=false;btn.textContent="Recover / Retry Inventory"}};$("reprintReceipt").onclick=()=>{const z=lastCompletedTrade,pt=String(z.tx.payout_type||"trade").toLowerCase();hide();openReceiptPrint(z.tx.transaction_number,pt,+z.tx.subtotal||0,+z.tx.bonus||0,+z.tx.total||0,z.items,z.customer,{type:null,value:0},z.tx.payout_method)};
+ $("closeCompleted").onclick=hide;$("recoverInventory").onclick=async()=>{const btn=$("recoverInventory");btn.disabled=true;btn.textContent="Recovering inventory...";try{const r=await syncCompletedTradeInventory(Number(txid));alert(r.ok?`Inventory sync finished: ${r.completed} completed, ${r.skipped} skipped, ${r.failed} need review.`:`Inventory recovery interrupted: ${r.error||r.failed+" jobs need review"}. Review processing jobs before retrying; completed jobs will not run again.`)}finally{btn.disabled=false;btn.textContent="Recover / Retry Inventory"}};$("reprintReceipt").onclick=()=>{const z=lastCompletedTrade,pt=String(z.tx.payout_type||"trade").toLowerCase();hide();openReceiptPrint(z.tx.transaction_number,pt,+z.tx.subtotal||0,+z.tx.bonus||0,+z.tx.total||0,z.items,z.customer,{type:null,value:0},z.tx.payout_method)};
 }
 $("recentBtn").onclick=async()=>{const saved=JSON.parse(localStorage.getItem("tt_saved_trades")||"[]"),d=await api("/rest/v1/trade_transactions?select=*&order=created_at.desc&limit=40");show(`<h2>Recent / Saved Trades</h2>${saved.length?'<div class="label" style="margin:10px 0">SAVED FOR LATER</div>'+saved.map((x,i)=>`<div class="result savedPick" data-i="${i}"><div><strong>${esc(x.name)}</strong><small>${new Date(x.saved_at).toLocaleString()} &#8226; ${x.items.length} item(s)</small></div><span class="savedBadge">RESUME</span></div>`).join(""):""}<div class="label" style="margin:14px 0 6px">COMPLETED TRADES</div>${d.map(x=>`<div class="result completedPick" data-id="${x.id}"><div><strong>${esc(x.transaction_number)}</strong><small>${new Date(x.created_at).toLocaleString()} &#8226; ${esc(x.payout_type)} &#8226; ${esc(x.payout_method||"")}</small></div><b>${money(x.total)}</b></div>`).join("")||'<div class="notice">No trades yet.</div>'}`);$("dialog").onclick=e=>{const s=e.target.closest(".savedPick");if(s){const z=saved[+s.dataset.i];if(items.length&&!confirm("Replace the current trade with this saved trade?"))return;items=z.items||[];customer=z.customer||null;promotion=z.promotion||{type:null,value:0};employee=z.employee||employee;if(employee)$("employeeName").textContent=employee.display_name||"Employee";if(customer)setCustomer();else $("clearCustomer").click();saved.splice(+s.dataset.i,1);localStorage.setItem("tt_saved_trades",JSON.stringify(saved));hide();render();return}const c=e.target.closest(".completedPick");if(c){hide();loadCompletedTrade(c.dataset.id)}}};
 $("saveTradeBtn").onclick=()=>{if(!items.length)return alert("There is no trade to save.");const saved=JSON.parse(localStorage.getItem("tt_saved_trades")||"[]"),name=prompt("Name this saved trade:",customer?customerDisplayName(customer):"Saved Trade");if(name===null)return;saved.unshift({id:"S-"+Date.now(),name:name.trim()||"Saved Trade",saved_at:new Date().toISOString(),items:JSON.parse(JSON.stringify(items)),customer:customer?JSON.parse(JSON.stringify(customer)):null,promotion:{...promotion},employee:employee?{...employee}:null});localStorage.setItem("tt_saved_trades",JSON.stringify(saved.slice(0,50)));alert("Trade saved for later.");};
 $("clearTradeBtn").onclick=()=>{if(!items.length&&!customer)return;if(!confirm("CLEAR THIS TRADE?\n\nThis removes the current items and customer. Completed trades are not affected."))return;items=[];selected=-1;promotion={type:null,value:0};customer=null;$("clearCustomer").click();render();};
 
 async function syncCompletedTradeInventory(txid,receiptItems){
- const batchSize=6;
+ const batchSize=1;
  try{
   const saved=await api("/rest/v1/trade_transaction_items?select=*&transaction_id=eq."+txid+"&order=id.asc");
   if(!saved.length)throw Error("No saved trade items found.");
@@ -621,7 +621,7 @@ async function syncCompletedTradeInventory(txid,receiptItems){
     created+=Number(freeze.frozen||0);
    }
    const batchJobs=(await api("/functions/v1/trade-inventory-jobs",{method:"POST",body:JSON.stringify({transaction_id:txid})})).jobs.filter(x=>chunk.some(c=>Number(c.id)===Number(x.trade_item_id)));
-   const pending=batchJobs.filter(x=>!["completed","skipped"].includes(x.status));
+   const pending=batchJobs.filter(x=>!["completed","skipped","processing"].includes(x.status));
    if(pending.length){
     $("statusBar").textContent=`TRADE SAVED | SENDING CARDS ${start+1}–${Math.min(start+batchSize,saved.length)} OF ${saved.length}`;
     const run=await api("/functions/v1/trade-inventory-processor",{method:"POST",body:JSON.stringify({transaction_id:txid,job_ids:pending.map(x=>x.id)})});
@@ -690,8 +690,11 @@ $("completeBtn").onclick=async()=>{
    completedTrade={id:txid,transaction_number:num,payout_type:pt,payout_method:payoutMethod,subtotal:+base.toFixed(2),bonus:+bonus.toFixed(2),total:+total.toFixed(2)};
    lastCompletedTrade={tx:{...completedTrade},items:receiptItems,customer:receiptCustomer};
    render();
-   await syncCompletedTradeInventory(txid,receiptItems);
    openReceiptPrint(num,pt,base,bonus,total,receiptItems,receiptCustomer,{...promotion},payoutMethod,receiptWindow);
+   // Inventory is independent of customer receipt printing. Keep this tab open until sync finishes.
+   void syncCompletedTradeInventory(txid,receiptItems).then(r=>{
+     if(!r.ok)console.warn("Inventory requires attention for trade",num,r);
+   }).catch(e=>console.error("Background inventory error",num,e));
  }catch(e){try{if(receiptWindow&&!receiptWindow.closed)receiptWindow.close()}catch{}alert((completedTrade?"Could not update payout: ":"Could not complete trade: ")+e.message)}
 };
 function openReceiptPrint(num,pt,base,bonus,total,receiptItems,receiptCustomer,receiptPromo,payoutMethodOverride=null,targetWindow=null){
