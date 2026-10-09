@@ -473,6 +473,7 @@ async function login(){
   render();
   $("gameSearch")?.focus();
   loadLive().then(()=>render()).catch(()=>{});
+  void resumeInterruptedInventory();
  }catch(e){note("loginStatus",e.message,true);$("loginPin").value="";$("loginPin").focus()}
 }
 async function boot(){
@@ -601,40 +602,79 @@ $("recentBtn").onclick=async()=>{const saved=JSON.parse(localStorage.getItem("tt
 $("saveTradeBtn").onclick=()=>{if(!items.length)return alert("There is no trade to save.");const saved=JSON.parse(localStorage.getItem("tt_saved_trades")||"[]"),name=prompt("Name this saved trade:",customer?customerDisplayName(customer):"Saved Trade");if(name===null)return;saved.unshift({id:"S-"+Date.now(),name:name.trim()||"Saved Trade",saved_at:new Date().toISOString(),items:JSON.parse(JSON.stringify(items)),customer:customer?JSON.parse(JSON.stringify(customer)):null,promotion:{...promotion},employee:employee?{...employee}:null});localStorage.setItem("tt_saved_trades",JSON.stringify(saved.slice(0,50)));alert("Trade saved for later.");};
 $("clearTradeBtn").onclick=()=>{if(!items.length&&!customer)return;if(!confirm("CLEAR THIS TRADE?\n\nThis removes the current items and customer. Completed trades are not affected."))return;items=[];selected=-1;promotion={type:null,value:0};customer=null;$("clearCustomer").click();render();};
 
-async function syncCompletedTradeInventory(txid,receiptItems){
- const batchSize=1;
- try{
-  const saved=await api("/rest/v1/trade_transaction_items?select=*&transaction_id=eq."+txid+"&order=id.asc");
-  if(!saved.length)throw Error("No saved trade items found.");
-  const jobs=(await api("/functions/v1/trade-inventory-jobs",{method:"POST",body:JSON.stringify({transaction_id:txid})})).jobs;
-  const known=new Set(jobs.map(j=>Number(j.trade_item_id)));
-  let created=0,completed=0,skipped=0,failed=0;
-  for(let start=0;start<saved.length;start+=batchSize){
-   const chunk=saved.slice(start,start+batchSize);
-   const missing=chunk.filter(x=>!known.has(Number(x.id)));
-   if(missing.length){
-    $("statusBar").textContent=`TRADE SAVED | PLANNING CARDS ${start+1}–${Math.min(start+batchSize,saved.length)} OF ${saved.length}`;
-    const inputs=chunk.map(x=>({item_type:x.item_type,title:x.title,details:x.details,market_value:x.market_value,qty:Number(x.metadata?.qty||1),metadata:x.metadata||{}}));
-    const sim=await api("/functions/v1/trade-inventory-simulator",{method:"POST",body:JSON.stringify({simulation_id:"TX-"+txid+"-"+start,items:inputs})});
-    if(!Array.isArray(sim?.results)||sim.results.length!==chunk.length)throw Error("Incomplete inventory plan at entry "+(start+1));
-    const freeze=await api("/functions/v1/trade-inventory-freeze",{method:"POST",body:JSON.stringify({transaction_id:txid,offset:start,results:sim.results})});
-    created+=Number(freeze.frozen||0);
+const INVENTORY_RECOVERY_KEY="tt_inventory_pending_transaction";
+const sleepInventory=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+let activeInventorySync=null;
+async function inventoryApi(path,body,attempts=3){
+ let last;
+ for(let attempt=0;attempt<attempts;attempt++){
+  try{return await api(path,{method:"POST",body:JSON.stringify(body)})}
+  catch(e){last=e;if(attempt+1<attempts)await sleepInventory(700*(attempt+1));}
+ }
+ throw last;
+}
+async function syncCompletedTradeInventory(txid){
+ if(activeInventorySync){if(activeInventorySync.txid===txid)return activeInventorySync.promise;throw Error("Another trade is still syncing. Please wait.")}
+ const promise=(async()=>{
+  localStorage.setItem(INVENTORY_RECOVERY_KEY,String(txid));
+  try{
+   const saved=await api("/rest/v1/trade_transaction_items?select=*&transaction_id=eq."+txid+"&order=id.asc");
+   if(!saved.length)throw Error("No saved trade items found.");
+   const expected=new Set(saved.map(x=>Number(x.id)));
+   const getJobs=async()=>{
+    const result=await inventoryApi("/functions/v1/trade-inventory-jobs",{transaction_id:txid});
+    if(!Array.isArray(result?.jobs))throw Error("Inventory jobs service returned no job list.");
+    return result.jobs;
+   };
+   let jobs=await getJobs();
+   // Plan only missing entries. A successful prior job is never simulated or frozen again.
+   for(let i=0;i<saved.length;i++){
+    const entry=saved[i];
+    if(jobs.some(j=>Number(j.trade_item_id)===Number(entry.id)))continue;
+    $("statusBar").textContent=`TRADE SAVED | PLANNING ${i+1} OF ${saved.length}`;
+    const input={item_type:entry.item_type,title:entry.title,details:entry.details,market_value:entry.market_value,qty:Number(entry.metadata?.qty||1),metadata:entry.metadata||{}};
+    const sim=await inventoryApi("/functions/v1/trade-inventory-simulator",{simulation_id:"TX-"+txid+"-"+i,items:[input]});
+    if(!Array.isArray(sim?.results)||sim.results.length!==1)throw Error("Incomplete inventory plan at item "+(i+1));
+    const freeze=await inventoryApi("/functions/v1/trade-inventory-freeze",{transaction_id:txid,offset:i,results:sim.results});
+    if(freeze?.error)throw Error(freeze.error);
+    jobs=await getJobs();
+    if(!jobs.some(j=>Number(j.trade_item_id)===Number(entry.id)))throw Error("Inventory job was not saved for item "+(i+1));
    }
-   const batchJobs=(await api("/functions/v1/trade-inventory-jobs",{method:"POST",body:JSON.stringify({transaction_id:txid})})).jobs.filter(x=>chunk.some(c=>Number(c.id)===Number(x.trade_item_id)));
-   const pending=batchJobs.filter(x=>!["completed","skipped","processing"].includes(x.status));
-   if(pending.length){
-    $("statusBar").textContent=`TRADE SAVED | SENDING CARDS ${start+1}–${Math.min(start+batchSize,saved.length)} OF ${saved.length}`;
-    const run=await api("/functions/v1/trade-inventory-processor",{method:"POST",body:JSON.stringify({transaction_id:txid,job_ids:pending.map(x=>x.id)})});
-    if(run?.error)throw Error(run.error);
+   jobs=await getJobs();
+   const covered=new Set(jobs.map(j=>Number(j.trade_item_id)));
+   const missing=[...expected].filter(id=>!covered.has(id));
+   if(missing.length)throw Error(missing.length+" trade entries still have no inventory jobs.");
+   // Only execute unfinished jobs. Processor uses the original idempotency keys.
+   for(const job of jobs){
+    if(["completed","skipped","processing"].includes(job.status))continue;
+    $("statusBar").textContent=`TRADE SAVED | SYNCING SQUARE INVENTORY`;
+    await inventoryApi("/functions/v1/trade-inventory-processor",{transaction_id:txid,job_ids:[job.id]},2);
    }
-   const statuses=(await api("/functions/v1/trade-inventory-jobs",{method:"POST",body:JSON.stringify({transaction_id:txid})})).jobs.filter(x=>chunk.some(c=>Number(c.id)===Number(x.trade_item_id)));
-   completed+=statuses.filter(x=>x.status==="completed").length;
-   skipped+=statuses.filter(x=>x.status==="skipped").length;
-   failed+=statuses.filter(x=>!["completed","skipped"].includes(x.status)).length;
+   const finalJobs=await getJobs();
+   const completed=finalJobs.filter(x=>x.status==="completed").length;
+   const skipped=finalJobs.filter(x=>x.status==="skipped").length;
+   const failed=finalJobs.filter(x=>!["completed","skipped"].includes(x.status)).length;
+   const finalCovered=new Set(finalJobs.map(x=>Number(x.trade_item_id)));
+   const absent=[...expected].filter(id=>!finalCovered.has(id)).length;
+   const ok=failed===0&&absent===0;
+   $("statusBar").textContent=ok?`TRADE COMPLETE | ${completed} SYNCED · ${skipped} SKIPPED · ${expected.size}/${expected.size} ACCOUNTED FOR`:`INVENTORY NEEDS ATTENTION | ${failed} UNFINISHED · ${absent} MISSING`;
+   if(ok)localStorage.removeItem(INVENTORY_RECOVERY_KEY);
+   return {ok,completed,skipped,failed,missing:absent,expected:expected.size};
+  }catch(e){
+   console.error("Post-trade inventory sync interrupted",txid,e);
+   $("statusBar").textContent="INVENTORY INCOMPLETE | TRADE SAVED | "+e.message;
+   return {ok:false,error:e.message};
   }
-  $("statusBar").textContent=`TRADE COMPLETE | SQUARE: ${completed} SYNCED · ${skipped} SKIPPED · ${failed} NEED REVIEW`;
-  return {ok:failed===0,created,completed,skipped,failed};
- }catch(e){console.error("Post-trade inventory sync failed",e);$("statusBar").textContent="TRADE COMPLETE | INVENTORY SYNC INTERRUPTED: "+e.message;return {ok:false,error:e.message}}
+ })();
+ activeInventorySync={txid,promise};
+ try{return await promise}finally{activeInventorySync=null}
+}
+async function resumeInterruptedInventory(){
+ const txid=Number(localStorage.getItem(INVENTORY_RECOVERY_KEY)||0);
+ if(!txid)return;
+ $("statusBar").textContent="CHECKING UNFINISHED TRADE INVENTORY...";
+ const r=await syncCompletedTradeInventory(txid);
+ if(!r.ok)alert("Trade #"+txid+" still needs inventory attention: "+(r.error||r.failed+" unfinished jobs"));
 }
 
 $("completeBtn").onclick=async()=>{
@@ -693,7 +733,7 @@ $("completeBtn").onclick=async()=>{
    openReceiptPrint(num,pt,base,bonus,total,receiptItems,receiptCustomer,{...promotion},payoutMethod,receiptWindow);
    // Inventory is independent of customer receipt printing. Keep this tab open until sync finishes.
    void syncCompletedTradeInventory(txid,receiptItems).then(r=>{
-     if(!r.ok)console.warn("Inventory requires attention for trade",num,r);
+     if(!r.ok){console.warn("Inventory requires attention for trade",num,r);alert("Trade "+num+" was saved, but inventory is incomplete. Keep this tab open or sign back in to resume. "+(r.error||r.failed+" jobs unfinished"));}
    }).catch(e=>console.error("Background inventory error",num,e));
  }catch(e){try{if(receiptWindow&&!receiptWindow.closed)receiptWindow.close()}catch{}alert((completedTrade?"Could not update payout: ":"Could not complete trade: ")+e.message)}
 };
